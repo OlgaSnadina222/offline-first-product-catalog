@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">App_Retrofit2</string>
+
+    ------- ProductsScreen -------
+    <string name="search_products">Search products…</string>
+
+    ------- ProductDetailsScreen -------
+    <string name="product_brand">Brand:</string>
+    <string name="product_category">Category:</string>
+    <string name="product_rating">Rating:</string>
+    <string name="product_stock">Stock:</string>
+    <string name="product_price">Price:</string>
+
+    ------- UiState --------
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="request_timeout">Request timed out - try again</string>
+    <string name="server_error">Server error</string>
+    <string name="smth_went_wrong">Something went wrong</string>
+
+    ------- UiErrorMapper ------
+    <string name="unauthorized_access">Unauthorized access</string>
+    <string name="access_forbidden">Access forbidden</string>
+    <string name="product_not_found">Product not found</string>
+    <string name="server_error_try_later">Server error - try later</string>
+
+</resources>
