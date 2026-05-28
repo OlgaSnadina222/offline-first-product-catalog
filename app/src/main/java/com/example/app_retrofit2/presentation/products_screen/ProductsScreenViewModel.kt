@@ -66,13 +66,6 @@ class ProductsScreenViewModel @Inject constructor(
     fun onEvent(event: ProductsScreenUiEvents) {
         when(event) {
             is ProductsScreenUiEvents.OnQueryChange -> {
-//                mode.value = ProductsMode.SearchMode(event.query)
-//                if (event.query.isEmpty()){
-//                    mode.value = ProductsMode.All
-//                } else {
-//                    mode.value = ProductsMode.SearchMode(event.query)
-//                }
-//                _query.value = event.query
                 _filters.value = _filters.value.copy(
                     query = event.query)
             }
@@ -158,31 +151,5 @@ class ProductsScreenViewModel @Inject constructor(
             )
         }
     }
-
-    //    private fun observeSearch() {
-//        viewModelScope.launch {
-//            _query
-//                .debounce(400)
-//                .distinctUntilChanged()
-//                .collectLatest { query ->
-//                    if (query.isBlank()) {
-//                        page = 0
-//                        endReached = false
-//                        loadNextPage()
-//                    } else {
-//                        state.value = UiState.Loading
-//                        val result = searchProductsUseCase(query)
-//                        result.fold(
-//                            onSuccess = { list ->
-//                                state.value = UiState.Success(list)
-//                            },
-//                            onFailure = { error ->
-//                                state.value = UiState.Error.Unknown(error.message ?: "Unknown error")
-//                            }
-//                        )
-//                    }
-//                }
-//        }
-//    }
 }
 
