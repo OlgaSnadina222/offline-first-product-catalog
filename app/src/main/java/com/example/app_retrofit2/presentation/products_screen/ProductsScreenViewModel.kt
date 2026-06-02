@@ -26,7 +26,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ProductsScreenViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
-    //private val searchProductsUseCase: SearchProductsUseCase,
     private val createProductUseCase: CreateProductUseCase,
     private val updateProductUseCase: UpdateProductUseCase,
     private val deleteProductUseCase: DeleteProductUseCase,
@@ -34,13 +33,8 @@ class ProductsScreenViewModel @Inject constructor(
     private val getCategoriesUseCase: GetCategoriesUseCase
 ): ViewModel() {
     val state = MutableStateFlow<UiState<List<Product>>>(UiState.Loading)
-
-    //private val _query = MutableStateFlow("")
-    //val query = _query.asStateFlow()
-    //val mode = MutableStateFlow<ProductsMode>(ProductsMode.All)
-
-    private val _categories = MutableStateFlow<List<Category>>(emptyList())
-    val categories = _categories.asStateFlow()
+    private val _categoriesState = MutableStateFlow(CategoriesUiState())
+    val categoriesState = _categoriesState.asStateFlow()
     private val _filters = MutableStateFlow(ProductFilters())
     val filters = _filters.asStateFlow()
 
@@ -79,8 +73,11 @@ class ProductsScreenViewModel @Inject constructor(
                 deleteProduct(event.id)
             }
             is ProductsScreenUiEvents.OnCategorySelected -> {
+                _categoriesState.value = _categoriesState.value.copy(
+                    selectedCategorySlug = event.categorySlug
+                )
                 _filters.value = _filters.value.copy(
-                    category = event.category.toString()
+                    category = event.categorySlug
                 )
             }
         }
@@ -93,22 +90,22 @@ class ProductsScreenViewModel @Inject constructor(
     private fun loadCategories() {
         viewModelScope.launch {
             getCategoriesUseCase().onSuccess { list ->
-                _categories.value = listOf(
-                            Category(
-                                slug = "all",
-                                name = "All",
-                                url = ""
-                            )
-                        ) + list
+                _categoriesState.value = _categoriesState.value.copy(
+                    categories = listOf(
+                        Category(
+                            slug = "all",
+                            name = "All",
+                            url = "")
+                    ) + list
+                )
                 }
-                .onFailure {
-
+                .onFailure { error ->
+                    state.value = UiState.Error.Unknown(error.message ?: "Unknown error")
                 }
         }
     }
 
     private fun onQueryChange(newQuery: String) {
-        //_query.value = newQuery
         _filters.value = _filters.value.copy(
             query = newQuery)
     }
