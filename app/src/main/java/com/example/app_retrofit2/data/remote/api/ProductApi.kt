@@ -40,16 +40,4 @@ interface ProductApi {
         skip: Int
     ): Response<ProductResponseDto>
 
-    @POST("products")
-    suspend fun createProduct(@Body product: ProductRequestDto): Response<ProductDto>
-
-    @PUT("products/{id}")
-    suspend fun updateProduct(@Path("id") id: Int, @Body product: ProductRequestDto): Response<ProductDto>
-
-    @PATCH("products/{id}")
-    suspend fun patchProduct(@Path("id") id: Int, @Body product: Map<String, Any>): Response<ProductDto>
-
-    @DELETE("products/{id}")
-    suspend fun deleteProduct(@Path("id") id: Int): Response<Unit>
-
 }

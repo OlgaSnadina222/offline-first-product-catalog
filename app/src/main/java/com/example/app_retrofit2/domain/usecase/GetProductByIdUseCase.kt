@@ -7,7 +7,7 @@ import jakarta.inject.Inject
 class GetProductByIdUseCase @Inject constructor(
     private val productRepository: ProductRepo
 ) {
-    suspend operator fun invoke(id: Int): Result<Product?> {
+    suspend operator fun invoke(id: Int): Result<Product> {
         return productRepository.getProductById(id)
     }
 }

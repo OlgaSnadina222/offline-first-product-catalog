@@ -6,11 +6,6 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import com.example.app_retrofit2.data.remote.api.ProductApi
 import com.example.app_retrofit2.data.remote.dto.ProductDto
-import com.example.app_retrofit2.data.remote.dto.ProductRequestDto
-import com.example.app_retrofit2.data.remote.mapper.toDomain
-import com.example.app_retrofit2.data.remote.paging.ProductsPagingSource
-import com.example.app_retrofit2.data.remote.paging.SearchProductsPagingSource
-import com.example.app_retrofit2.domain.model.Product
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import okio.IOException
@@ -37,7 +32,7 @@ class RemoteProductDataSource @Inject constructor(
         }
     }
 
-    suspend fun getProductById(id: Int): Result<ProductDto?> {
+    suspend fun getProductById(id: Int): Result<ProductDto> {
         return try {
             val response = productApi.getProductById(id)
             if (response.isSuccessful) {
@@ -53,29 +48,57 @@ class RemoteProductDataSource @Inject constructor(
         }
     }
 
-    fun searchProducts(query: String): Flow<PagingData<ProductDto>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 20,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = {
-                SearchProductsPagingSource(productApi, query)
+    suspend fun searchProducts(query: String, limit: Int, skip: Int): Result<List<ProductDto>> {
+        return try {
+            val response = productApi.searchProducts(
+                query = query,
+                limit = limit,
+                skip = skip
+            )
+            if (response.isSuccessful) {
+                val body = response.body() ?: return Result.failure(Exception("Body is null"))
+                Result.success(body.products)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.code()}"))
             }
-        ).flow
+        } catch (ioException: IOException) {
+            Result.failure(ioException)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
-    suspend fun createProduct(dto: ProductRequestDto): Result<ProductDto> =
-        handle { productApi.createProduct(dto) }
+    suspend fun getProductsByCategory(category: String, limit: Int, skip: Int): Result<List<ProductDto>> {
+        return try {
+            val response = productApi.getProductsByCategory(
+                category = category,
+                limit = limit,
+                skip = skip
+            )
+            if (response.isSuccessful) {
+                val body = response.body() ?: return Result.failure(Exception("Body is null"))
+                Result.success(body.products)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.code()}"))
+            }
+        } catch (ioException: IOException) {
+            Result.failure(ioException)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
-    suspend fun updateProduct(id: Int, dto: ProductRequestDto): Result<ProductDto> =
-        handle { productApi.updateProduct(id, dto) }
-
-    suspend fun patchProduct(id: Int, fields: Map<String, Any>): Result<ProductDto> =
-        handle { productApi.patchProduct(id, fields) }
-
-    suspend fun deleteProduct(id: Int): Result<Unit> =
-        handle { productApi.deleteProduct(id) }
+//    suspend fun createProduct(dto: ProductRequestDto): Result<ProductDto> =
+//        handle { productApi.createProduct(dto) }
+//
+//    suspend fun updateProduct(id: Int, dto: ProductRequestDto): Result<ProductDto> =
+//        handle { productApi.updateProduct(id, dto) }
+//
+//    suspend fun patchProduct(id: Int, fields: Map<String, Any>): Result<ProductDto> =
+//        handle { productApi.patchProduct(id, fields) }
+//
+//    suspend fun deleteProduct(id: Int): Result<Unit> =
+//        handle { productApi.deleteProduct(id) }
 
     private suspend fun <T> handle (call: suspend () -> Response<T>): Result<T> {
         return try {
@@ -91,24 +114,6 @@ class RemoteProductDataSource @Inject constructor(
             Result.failure(ioException)
         } catch (e: Exception) {
             Result.failure(e)
-        }
-    }
-
-    fun getPagedProducts(query: String, category: String): Flow<PagingData<ProductDto>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 20,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = {
-                ProductsPagingSource(
-                    productApi = productApi,
-                    query = query,
-                    category = category
-                )
-            }
-        ).flow.map { pagingData ->
-            pagingData.map { it }
         }
     }
 }

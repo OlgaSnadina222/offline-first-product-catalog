@@ -5,8 +5,5 @@ import com.example.app_retrofit2.domain.model.Product
 
 sealed class ProductsScreenUiEvents {
     data class OnQueryChange(val query: String): ProductsScreenUiEvents()
-    data class CreateProduct(val product: Product): ProductsScreenUiEvents()
-    data class UpdateProduct(val id: Int, val product: Product): ProductsScreenUiEvents()
-    data class DeleteProduct(val id: Int): ProductsScreenUiEvents()
     data class OnCategorySelected(val categorySlug: String) : ProductsScreenUiEvents()
 }

@@ -38,7 +38,7 @@ class ProductDetailsScreenViewModel @Inject constructor(
                 val result = getProductByIdUseCase(id)
                 result.fold(
                     onSuccess = { product ->
-                        _state.value = UiState.Success(product!!)
+                        _state.value = UiState.Success(product)
                     },
                     onFailure = { error ->
                         _state.value = UiState.Error.Unknown(error.message ?: "Unknown error")

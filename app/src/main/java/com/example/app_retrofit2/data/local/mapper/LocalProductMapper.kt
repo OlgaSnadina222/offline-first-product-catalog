@@ -1,10 +1,9 @@
-package com.example.app_retrofit2.data.remote.mapper
+package com.example.app_retrofit2.data.local.mapper
 
-import com.example.app_retrofit2.data.remote.dto.ProductDto
-import com.example.app_retrofit2.data.remote.dto.ProductRequestDto
+import com.example.app_retrofit2.data.local.entity.ProductEntity
 import com.example.app_retrofit2.domain.model.Product
 
-fun ProductDto.toDomain(): Product {
+fun ProductEntity.toDomain(): Product{
     return Product(
         id = id,
         title = title ?: "",
@@ -19,8 +18,8 @@ fun ProductDto.toDomain(): Product {
     )
 }
 
-fun Product.toDto(): ProductDto {
-    return ProductDto(
+fun Product.toEntity(): ProductEntity {
+    return ProductEntity(
         id = id,
         title = title,
         description = description,
@@ -31,15 +30,5 @@ fun Product.toDto(): ProductDto {
         stock = stock,
         brand = brand,
         images = images
-    )
-}
-
-fun Product.toRequestDto(): ProductRequestDto {
-    return ProductRequestDto(
-        title = title,
-        price = price,
-        description = description,
-        brand = brand,
-        category = category
     )
 }

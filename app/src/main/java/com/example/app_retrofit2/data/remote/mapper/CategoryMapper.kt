@@ -6,7 +6,6 @@ import com.example.app_retrofit2.domain.model.Category
 fun CategoryDto.toDomain(): Category {
     return Category(
         slug = slug ?: "unknown",
-        name = name ?: "unknown",
-        url = url ?: ""
+        name = name ?: "unknown"
     )
 }
