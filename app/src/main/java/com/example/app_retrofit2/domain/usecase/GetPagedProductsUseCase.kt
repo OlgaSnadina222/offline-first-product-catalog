@@ -9,9 +9,8 @@ import kotlinx.coroutines.flow.Flow
 class GetPagedProductsUseCase @Inject constructor(
     private val productRepository: ProductRepo
 ) {
-    operator fun invoke(query: String, category: String): Flow<PagingData<Product>> {
+    operator fun invoke(category: String): Flow<PagingData<Product>> {
         return productRepository.getPagedProducts(
-            query = query,
             category = category
         )
     }

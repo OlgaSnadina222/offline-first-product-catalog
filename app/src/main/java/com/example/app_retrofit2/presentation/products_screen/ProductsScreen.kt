@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -146,51 +147,59 @@ fun ProductsScreen(
                         )
                     )
                 }
-                if (products.loadState.refresh is LoadState.Loading ||
-                    state is UiState.Loading && products.loadState.refresh is LoadState.Loading
+                PullToRefreshBox(
+                    isRefreshing =
+                        products.loadState.refresh is LoadState.Loading,
+                    onRefresh = {
+                        products.refresh()
+                    }
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    if (products.loadState.refresh is LoadState.Loading ||
+                        state is UiState.Loading && products.loadState.refresh is LoadState.Loading
                     ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(60.dp),
-                            strokeWidth = 7.dp,
-                            color = Color.Red
-                        )
-                    }
-                } else if (products.loadState.refresh is LoadState.Error || state is UiState.Error) {
-                    val pagingError = products.loadState.refresh as? LoadState.Error
-                    val errorText = when {
-                        pagingError != null -> pagingError.error.message
-                        state is UiState.Error.Network -> (state as UiState.Error.Network).message
-                        state is UiState.Error.Timeout -> (state as UiState.Error.Timeout).message
-                        state is UiState.Error.Http -> (state as UiState.Error.Http).message
-                        state is UiState.Error.Unknown -> (state as UiState.Error.Unknown).message
-                        else -> {
-                            UiState.Error.Unknown().message
-                        }
-                    }
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = errorText.toString(),
-                            color = Color.Red
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                            .padding(horizontal = 10.dp)
-                    ) {
-                        items(products.itemSnapshotList) { product ->
-                            ProductItem(
-                                product = product!!,
-                                onClick = { onProductClick(product.id) }
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(60.dp),
+                                strokeWidth = 7.dp,
+                                color = Color.Red
                             )
-                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                    } else if (products.loadState.refresh is LoadState.Error || state is UiState.Error) {
+                        val pagingError = products.loadState.refresh as? LoadState.Error
+                        val errorText = when {
+                            pagingError != null -> pagingError.error.message
+                            state is UiState.Error.Network -> (state as UiState.Error.Network).message
+                            state is UiState.Error.Timeout -> (state as UiState.Error.Timeout).message
+                            state is UiState.Error.Http -> (state as UiState.Error.Http).message
+                            state is UiState.Error.Unknown -> (state as UiState.Error.Unknown).message
+                            else -> {
+                                UiState.Error.Unknown().message
+                            }
+                        }
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = errorText.toString(),
+                                color = Color.Red
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize()
+                                .padding(horizontal = 10.dp)
+                        ) {
+                            items(products.itemSnapshotList) { product ->
+                                ProductItem(
+                                    product = product!!,
+                                    onClick = { onProductClick(product.id) }
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
                         }
                     }
                 }

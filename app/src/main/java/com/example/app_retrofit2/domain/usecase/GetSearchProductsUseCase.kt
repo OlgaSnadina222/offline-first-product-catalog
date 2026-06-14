@@ -6,12 +6,14 @@ import com.example.app_retrofit2.domain.repositoty.ProductRepo
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 
-class GetProductsUseCase @Inject constructor(
+class GetSearchProductsUseCase @Inject constructor(
     private val productRepository: ProductRepo
 ) {
-    operator fun invoke(): Flow<PagingData<Product>> {
-        return productRepository.getPagedProducts(
-            category = "all"
+    operator fun invoke(
+        query: String
+    ): Flow<PagingData<Product>> {
+        return productRepository.searchProducts(
+            query = query
         )
     }
 }

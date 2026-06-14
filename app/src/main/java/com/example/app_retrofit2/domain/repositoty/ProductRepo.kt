@@ -9,7 +9,8 @@ import retrofit2.Response
 interface ProductRepo {
     suspend fun insertProducts(products: List<Product>)
     suspend fun clearProducts()
-    fun getPagedProducts(query: String, category: String): Flow<PagingData<Product>>
+    fun getPagedProducts(category: String): Flow<PagingData<Product>>
+    fun searchProducts(query: String): Flow<PagingData<Product>>
     suspend fun getProductById(id: Int): Result<Product>
 }
 
