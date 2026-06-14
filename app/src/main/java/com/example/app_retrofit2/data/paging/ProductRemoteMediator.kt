@@ -34,12 +34,6 @@ class ProductRemoteMediator(
                         limit = state.config.pageSize,
                         skip = skip
                     ).getOrThrow()
-                        .filter {
-                            it.category.equals(
-                                category,
-                                ignoreCase = true
-                            )
-                        }
                 }
                 query.isNotBlank() -> {
                     remote.searchProducts(
@@ -72,7 +66,7 @@ class ProductRemoteMediator(
             )
 
             MediatorResult.Success(
-                endOfPaginationReached = products.isEmpty()
+                endOfPaginationReached = products.size < state.config.pageSize
             )
         } catch (e: Exception) {
             MediatorResult.Error(e)
