@@ -3,6 +3,7 @@ package com.example.app_retrofit2.di
 import android.content.Context
 import androidx.room.Room
 import com.example.app_retrofit2.data.local.dao.CacheInfoDao
+import com.example.app_retrofit2.data.local.dao.FavoriteDao
 import com.example.app_retrofit2.data.local.dao.ProductDao
 import com.example.app_retrofit2.data.local.db.AppDatabase
 import dagger.Module
@@ -29,5 +30,8 @@ object DatabaseModule {
 
     @Provides
     fun provideCacheInfoDao(db: AppDatabase) : CacheInfoDao = db.cacheInfoDao()
+
+    @Provides
+    fun provideFavoriteDao(db: AppDatabase) : FavoriteDao = db.favoriteDao()
 
 }

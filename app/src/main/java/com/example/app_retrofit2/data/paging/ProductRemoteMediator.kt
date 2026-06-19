@@ -20,6 +20,7 @@ class ProductRemoteMediator(
     private val cacheInfoDao: CacheInfoDao,
 ) : RemoteMediator<Int, ProductEntity>() {
 
+
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, ProductEntity>

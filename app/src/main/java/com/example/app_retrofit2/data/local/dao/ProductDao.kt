@@ -28,4 +28,7 @@ interface ProductDao {
     @Query("SELECT COUNT(*) FROM products")
     suspend fun getProductsCount(): Int
 
+    @Query("SELECT p.* FROM products p INNER JOIN favorites f ON p.id = f.productId")
+    fun getFavoriteProducts(): Flow<List<ProductEntity>>
+
 }

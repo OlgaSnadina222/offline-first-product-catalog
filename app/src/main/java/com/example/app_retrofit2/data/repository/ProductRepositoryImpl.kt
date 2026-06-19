@@ -45,7 +45,7 @@ class ProductRepositoryImpl @Inject constructor(
                     remoteRepo = remoteRepo,
                     query = query
                 )
-        }
+            }
         ).flow
     }
 
@@ -79,7 +79,25 @@ class ProductRepositoryImpl @Inject constructor(
         }
         return remoteRepo.getProductById(id).map { dto ->
             localRepo.insertProducts(listOf(dto.toEntity()))
-                dto.toEntity().toDomain()
+            dto.toEntity().toDomain()
+        }
+    }
+
+    override suspend fun toggleFavorite(productId: Int) {
+        if (localRepo.isFavorite(productId)) {
+            localRepo.removeFavorite(productId)
+        } else {
+            localRepo.addFavorite(productId)
+        }
+    }
+
+    override fun getFavoriteIds(): Flow<List<Int>> {
+        return localRepo.getFavoriteIds()
+        }
+
+    override fun getFavoriteProducts(): Flow<List<Product>> {
+        return localRepo.getFavoriteProducts().map{ products ->
+            products.map { it.toDomain().copy(isFavorite = true) }
         }
     }
 }

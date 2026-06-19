@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,20 +53,23 @@ import com.example.app_retrofit2.R
 import com.example.app_retrofit2.presentation.common.events.ProductsScreenUiEvents
 import com.example.app_retrofit2.presentation.common.states.UiState
 import com.example.app_retrofit2.presentation.theme.CategoryMenuColor
+import com.example.app_retrofit2.presentation.theme.FavoriteColor
 import com.example.app_retrofit2.presentation.theme.ProductSearchBarColor
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProductsScreen(
     onProductClick: (Int) -> Unit,
+    onFavoritesClick: () -> Unit,
     viewModel: ProductsScreenViewModel = hiltViewModel()
     ) {
     val state by viewModel.state.collectAsState()
     val categoryState by viewModel.categoriesState.collectAsState()
     val products = viewModel.products.collectAsLazyPagingItems()
     val filters by viewModel.filters.collectAsState()
-
     var expanded by remember { mutableStateOf(false) }
+    var isFavorite by remember { mutableStateOf(false) }
+
 
     Scaffold {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -146,6 +150,22 @@ fun ProductsScreen(
                             unfocusedTextColor = Color.Gray
                         )
                     )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    OutlinedButton(
+                        onClick = { onFavoritesClick() },
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = FavoriteColor),
+                        contentPadding = PaddingValues(0.dp),
+                        border = BorderStroke(1.dp, Color.Transparent)
+                    ) {
+                        Icon(
+                            Icons.Default.Favorite,
+                            contentDescription = "Favorites",
+                            tint = Color.White,
+                            modifier = Modifier.size(29.dp)
+                        )
+                    }
                 }
                 PullToRefreshBox(
                     isRefreshing =
@@ -196,7 +216,10 @@ fun ProductsScreen(
                             items(products.itemSnapshotList) { product ->
                                 ProductItem(
                                     product = product!!,
-                                    onClick = { onProductClick(product.id) }
+                                    onClickCard = { onProductClick(product.id) },
+                                    onFavoriteClick = { viewModel.onEvent(ProductsScreenUiEvents
+                                        .ToggleFavorite(product.id))
+                                    }
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                             }

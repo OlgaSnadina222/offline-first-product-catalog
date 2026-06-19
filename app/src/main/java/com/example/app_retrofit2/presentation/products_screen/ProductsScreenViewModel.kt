@@ -1,20 +1,27 @@
 package com.example.app_retrofit2.presentation.products_screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import androidx.paging.map
 import com.example.app_retrofit2.domain.model.Category
 import com.example.app_retrofit2.domain.model.Product
 import com.example.app_retrofit2.domain.usecase.GetCategoriesUseCase
+import com.example.app_retrofit2.domain.usecase.GetFavoriteIdsUseCase
 import com.example.app_retrofit2.domain.usecase.GetPagedProductsUseCase
 import com.example.app_retrofit2.domain.usecase.GetSearchProductsUseCase
+import com.example.app_retrofit2.domain.usecase.ToggleFavoriteUseCase
 import com.example.app_retrofit2.presentation.common.events.ProductsScreenUiEvents
 import com.example.app_retrofit2.presentation.common.states.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,7 +29,9 @@ import javax.inject.Inject
 class ProductsScreenViewModel @Inject constructor(
     private val getPagedProductsUseCase: GetPagedProductsUseCase,
     private val getSearchProductsUseCase: GetSearchProductsUseCase,
-    private val getCategoriesUseCase: GetCategoriesUseCase
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val getFavoriteIdsUseCase: GetFavoriteIdsUseCase
 ): ViewModel() {
     val state = MutableStateFlow<UiState<List<Product>>>(UiState.Loading)
     private val _categoriesState = MutableStateFlow(CategoriesUiState())
@@ -32,10 +41,15 @@ class ProductsScreenViewModel @Inject constructor(
     private val _query = MutableStateFlow("")
     val query = _query.asStateFlow()
     private val mode = MutableStateFlow<ProductsMode>(ProductsMode.All("all"))
+    private val favoriteIds = getFavoriteIdsUseCase().stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val products = mode.flatMapLatest { mode ->
+    val pagingProducts = mode.flatMapLatest { mode ->
         when(mode) {
             is ProductsMode.All -> getPagedProductsUseCase(
                 category = mode.category
@@ -47,6 +61,16 @@ class ProductsScreenViewModel @Inject constructor(
             }
         }
     }.cachedIn(viewModelScope)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val products = combine(
+        pagingProducts,
+        favoriteIds
+    ) { pagingData, favorites ->
+        pagingData.map { product ->
+            product.copy(isFavorite = product.id in favorites)
+        }
+    }
 
     fun onEvent(event: ProductsScreenUiEvents) {
         when(event) {
@@ -74,6 +98,9 @@ class ProductsScreenViewModel @Inject constructor(
                 if (_query.value.isBlank()) {
                     mode.value = ProductsMode.All(event.categorySlug)
                 }
+            }
+            is ProductsScreenUiEvents.ToggleFavorite -> {
+                toggleFavorite(event.productId)
             }
         }
     }
@@ -103,6 +130,12 @@ class ProductsScreenViewModel @Inject constructor(
     private fun onQueryChange(newQuery: String) {
         _filters.value = _filters.value.copy(
             query = newQuery)
+    }
+
+    private fun toggleFavorite(productId: Int) {
+        viewModelScope.launch {
+            toggleFavoriteUseCase(productId)
+        }
     }
 }
 
