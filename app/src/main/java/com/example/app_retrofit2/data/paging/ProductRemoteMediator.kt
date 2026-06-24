@@ -7,10 +7,9 @@ import androidx.paging.RemoteMediator
 import com.example.app_retrofit2.data.local.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.datasource.room.LocalProductDataSource
 import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
-import com.example.app_retrofit2.data.local.entity.ProductEntity
+import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteProductDataSource
 import com.example.app_retrofit2.data.remote.mapper.toEntity
-import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class ProductRemoteMediator(
@@ -18,17 +17,23 @@ class ProductRemoteMediator(
     private val local: LocalProductDataSource,
     private val category: String,
     private val cacheInfoDao: CacheInfoDao,
-) : RemoteMediator<Int, ProductEntity>() {
+) : RemoteMediator<Int, ProductWithFavorite>() {
 
 
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<Int, ProductEntity>
+        state: PagingState<Int, ProductWithFavorite>
     ): MediatorResult {
         return try {
             val skip = when(loadType) {
                 LoadType.REFRESH -> 0
-                LoadType.APPEND -> local.getProductsCount()
+                LoadType.APPEND -> {
+                    val remoteKey = local.getRemoteKey()
+                    val nextKey = remoteKey?.nextKey ?: return MediatorResult.Success(
+                        endOfPaginationReached = true
+                    )
+                    nextKey
+                }
                 LoadType.PREPEND -> return MediatorResult.Success(true)
             }
             val products = if (category != "all") {
@@ -47,9 +52,21 @@ class ProductRemoteMediator(
 
             if (loadType == LoadType.REFRESH) {
                 local.clearProducts()
+                local.clearRemoteKeys()
             }
-            local.insertProducts(products.map { it.toEntity() })
-            cacheInfoDao.insert(CacheInfoEntity(
+            local.insertProducts(
+                products.map { it.toEntity() }
+            )
+
+            local.insertRemoteKey(
+                nextKey = if (products.size < state.config.pageSize) {
+                    null
+                } else {
+                    skip + products.size
+                }
+            )
+
+            cacheInfoDao.insertCacheInfo(CacheInfoEntity(
                 key = "products",
                 lastUpdated = System.currentTimeMillis())
             )
@@ -63,5 +80,14 @@ class ProductRemoteMediator(
 
     override suspend fun initialize(): InitializeAction {
         return InitializeAction.LAUNCH_INITIAL_REFRESH
+//        val cacheInfo = cacheInfoDao.getCacheInfo("products")
+//        return if (
+//            cacheInfo == null ||
+//            System.currentTimeMillis() - cacheInfo.lastUpdated > 60 * 60 * 1000
+//        ) {
+//            InitializeAction.LAUNCH_INITIAL_REFRESH
+//        } else {
+//            InitializeAction.SKIP_INITIAL_REFRESH
+//        }
     }
 }

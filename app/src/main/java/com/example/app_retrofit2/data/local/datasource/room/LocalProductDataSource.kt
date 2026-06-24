@@ -3,19 +3,24 @@ package com.example.app_retrofit2.data.local.datasource.room
 import androidx.paging.PagingSource
 import com.example.app_retrofit2.data.local.dao.FavoriteDao
 import com.example.app_retrofit2.data.local.dao.ProductDao
+import com.example.app_retrofit2.data.local.dao.RemoteKeyDao
 import com.example.app_retrofit2.data.local.entity.FavoriteEntity
+import com.example.app_retrofit2.data.local.entity.FavoriteWithProduct
 import com.example.app_retrofit2.data.local.entity.ProductEntity
+import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
+import com.example.app_retrofit2.data.local.entity.RemoteKeyEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class LocalProductDataSource @Inject constructor(
     private val productDao: ProductDao,
-    private val favoriteDao: FavoriteDao
+    private val favoriteDao: FavoriteDao,
+    private val remoteKeyDao: RemoteKeyDao
 ){
     fun getProducts(): Flow<List<ProductEntity>> {
         return productDao.getProducts()
     }
-    fun pagingSource(): PagingSource<Int, ProductEntity> {
+    fun pagingSource(): PagingSource<Int, ProductWithFavorite> {
         return productDao.pagingSource()
     }
 
@@ -47,12 +52,24 @@ class LocalProductDataSource @Inject constructor(
         return favoriteDao.exists(productId)
     }
 
-    fun getFavoriteIds(): Flow<List<Int>> {
-        return favoriteDao.getFavoriteIds()
+    fun getFavoriteProducts(): Flow<List<FavoriteWithProduct>> {
+        return favoriteDao.getFavoriteProducts()
     }
 
-    fun getFavoriteProducts(): Flow<List<ProductEntity>> {
-        return productDao.getFavoriteProducts()
+    suspend fun getRemoteKey(): RemoteKeyEntity? {
+        return remoteKeyDao.getRemoteKey("products")
     }
 
+    suspend fun insertRemoteKey(nextKey: Int?) {
+        remoteKeyDao.insertRemoteKey(
+            RemoteKeyEntity(
+                id = "products",
+                nextKey = nextKey
+            )
+        )
+    }
+
+    suspend fun clearRemoteKeys() {
+        remoteKeyDao.clearRemoteKeys()
+    }
 }

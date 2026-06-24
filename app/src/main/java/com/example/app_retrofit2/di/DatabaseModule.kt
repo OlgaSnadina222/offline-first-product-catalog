@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.app_retrofit2.data.local.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.dao.FavoriteDao
 import com.example.app_retrofit2.data.local.dao.ProductDao
+import com.example.app_retrofit2.data.local.dao.RemoteKeyDao
 import com.example.app_retrofit2.data.local.db.AppDatabase
 import dagger.Module
 import dagger.Provides
@@ -33,5 +34,8 @@ object DatabaseModule {
 
     @Provides
     fun provideFavoriteDao(db: AppDatabase) : FavoriteDao = db.favoriteDao()
+
+    @Provides
+    fun provideRemoteKeyDao(db: AppDatabase) : RemoteKeyDao = db.remoteKeyDao()
 
 }

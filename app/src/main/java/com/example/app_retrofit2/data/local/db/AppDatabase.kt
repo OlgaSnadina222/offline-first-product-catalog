@@ -6,9 +6,11 @@ import androidx.room.TypeConverters
 import com.example.app_retrofit2.data.local.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.dao.FavoriteDao
 import com.example.app_retrofit2.data.local.dao.ProductDao
+import com.example.app_retrofit2.data.local.dao.RemoteKeyDao
 import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
 import com.example.app_retrofit2.data.local.entity.FavoriteEntity
 import com.example.app_retrofit2.data.local.entity.ProductEntity
+import com.example.app_retrofit2.data.local.entity.RemoteKeyEntity
 import com.example.app_retrofit2.data.local.utils.Converters
 
 @Database(
@@ -16,7 +18,8 @@ import com.example.app_retrofit2.data.local.utils.Converters
     entities = [
         ProductEntity::class,
         CacheInfoEntity::class,
-        FavoriteEntity::class
+        FavoriteEntity::class,
+        RemoteKeyEntity::class
                ],
     exportSchema = false
 )
@@ -25,4 +28,5 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun productDao(): ProductDao
     abstract fun cacheInfoDao(): CacheInfoDao
     abstract fun favoriteDao(): FavoriteDao
+    abstract fun remoteKeyDao(): RemoteKeyDao
 }

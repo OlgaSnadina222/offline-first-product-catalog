@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -32,6 +34,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,6 +43,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -65,10 +70,11 @@ fun ProductsScreen(
     ) {
     val state by viewModel.state.collectAsState()
     val categoryState by viewModel.categoriesState.collectAsState()
-    val products = viewModel.products.collectAsLazyPagingItems()
+    val products = viewModel.pagingProducts.collectAsLazyPagingItems()
     val filters by viewModel.filters.collectAsState()
     var expanded by remember { mutableStateOf(false) }
     var isFavorite by remember { mutableStateOf(false) }
+    val pullState = rememberPullToRefreshState()
 
 
     Scaffold {
@@ -168,26 +174,20 @@ fun ProductsScreen(
                     }
                 }
                 PullToRefreshBox(
+                    state = pullState,
+                    indicator = {
+                        PullToRefreshCustomIndicator(
+                            pullState,
+                            products.loadState.refresh is LoadState.Loading ||
+                            state is UiState.Loading && products.loadState.refresh is LoadState.Loading
+                        ) },
                     isRefreshing =
                         products.loadState.refresh is LoadState.Loading,
                     onRefresh = {
                         products.refresh()
                     }
                 ) {
-                    if (products.loadState.refresh is LoadState.Loading ||
-                        state is UiState.Loading && products.loadState.refresh is LoadState.Loading
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(60.dp),
-                                strokeWidth = 7.dp,
-                                color = Color.Red
-                            )
-                        }
-                    } else if (products.loadState.refresh is LoadState.Error || state is UiState.Error) {
+                     if (products.loadState.refresh is LoadState.Error || state is UiState.Error) {
                         val pagingError = products.loadState.refresh as? LoadState.Error
                         val errorText = when {
                             pagingError != null -> pagingError.error.message

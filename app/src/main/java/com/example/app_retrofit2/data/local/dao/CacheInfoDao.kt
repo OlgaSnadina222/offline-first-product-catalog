@@ -9,8 +9,8 @@ import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
 @Dao
 interface CacheInfoDao {
     @Query("SELECT * FROM CacheInfoEntity WHERE `key` = :key")
-    suspend fun get(key: String): CacheInfoEntity?
+    suspend fun getCacheInfo(key: String): CacheInfoEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(cacheInfo: CacheInfoEntity)
+    suspend fun insertCacheInfo(cacheInfo: CacheInfoEntity)
 }

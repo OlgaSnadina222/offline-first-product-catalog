@@ -4,7 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.example.app_retrofit2.data.local.entity.FavoriteEntity
+import com.example.app_retrofit2.data.local.entity.FavoriteWithProduct
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,6 +20,8 @@ interface FavoriteDao {
     @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE productId = :productId)")
     suspend fun exists(productId: Int): Boolean
 
-    @Query("SELECT productId FROM favorites")
-    fun getFavoriteIds(): Flow<List<Int>>
+    @Transaction
+    @Query("SELECT * FROM favorites")
+    fun getFavoriteProducts(): Flow<List<FavoriteWithProduct>>
+
 }

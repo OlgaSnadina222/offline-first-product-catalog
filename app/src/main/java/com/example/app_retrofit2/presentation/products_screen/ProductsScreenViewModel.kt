@@ -8,7 +8,6 @@ import androidx.paging.map
 import com.example.app_retrofit2.domain.model.Category
 import com.example.app_retrofit2.domain.model.Product
 import com.example.app_retrofit2.domain.usecase.GetCategoriesUseCase
-import com.example.app_retrofit2.domain.usecase.GetFavoriteIdsUseCase
 import com.example.app_retrofit2.domain.usecase.GetPagedProductsUseCase
 import com.example.app_retrofit2.domain.usecase.GetSearchProductsUseCase
 import com.example.app_retrofit2.domain.usecase.ToggleFavoriteUseCase
@@ -30,8 +29,7 @@ class ProductsScreenViewModel @Inject constructor(
     private val getPagedProductsUseCase: GetPagedProductsUseCase,
     private val getSearchProductsUseCase: GetSearchProductsUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
-    private val getFavoriteIdsUseCase: GetFavoriteIdsUseCase
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ): ViewModel() {
     val state = MutableStateFlow<UiState<List<Product>>>(UiState.Loading)
     private val _categoriesState = MutableStateFlow(CategoriesUiState())
@@ -41,11 +39,6 @@ class ProductsScreenViewModel @Inject constructor(
     private val _query = MutableStateFlow("")
     val query = _query.asStateFlow()
     private val mode = MutableStateFlow<ProductsMode>(ProductsMode.All("all"))
-    private val favoriteIds = getFavoriteIdsUseCase().stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
-                emptyList()
-            )
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,16 +54,6 @@ class ProductsScreenViewModel @Inject constructor(
             }
         }
     }.cachedIn(viewModelScope)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val products = combine(
-        pagingProducts,
-        favoriteIds
-    ) { pagingData, favorites ->
-        pagingData.map { product ->
-            product.copy(isFavorite = product.id in favorites)
-        }
-    }
 
     fun onEvent(event: ProductsScreenUiEvents) {
         when(event) {

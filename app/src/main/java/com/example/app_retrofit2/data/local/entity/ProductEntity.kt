@@ -15,5 +15,6 @@ data class ProductEntity(
     val rating: Float,
     val stock: Int,
     val brand: String?,
-    val images: List<String>?
+    val images: List<String>?,
+    val isVisible: Boolean = true
 )
