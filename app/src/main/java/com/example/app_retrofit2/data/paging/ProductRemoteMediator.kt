@@ -4,8 +4,10 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
+import androidx.room.withTransaction
 import com.example.app_retrofit2.data.local.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.datasource.room.LocalProductDataSource
+import com.example.app_retrofit2.data.local.db.AppDatabase
 import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
 import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteProductDataSource
@@ -17,6 +19,7 @@ class ProductRemoteMediator(
     private val local: LocalProductDataSource,
     private val category: String,
     private val cacheInfoDao: CacheInfoDao,
+    private val database: AppDatabase
 ) : RemoteMediator<Int, ProductWithFavorite>() {
 
 
@@ -50,26 +53,26 @@ class ProductRemoteMediator(
                     ).getOrThrow()
                 }
 
-            if (loadType == LoadType.REFRESH) {
-                local.clearProducts()
-                local.clearRemoteKeys()
-            }
-            local.insertProducts(
-                products.map { it.toEntity() }
-            )
-
-            local.insertRemoteKey(
-                nextKey = if (products.size < state.config.pageSize) {
-                    null
-                } else {
-                    skip + products.size
+            database.withTransaction {
+                if (loadType == LoadType.REFRESH) {
+                    local.clearProducts()
+                    local.clearRemoteKeys()
                 }
-            )
-
-            cacheInfoDao.insertCacheInfo(CacheInfoEntity(
-                key = "products",
-                lastUpdated = System.currentTimeMillis())
-            )
+                local.insertProducts(
+                    products.map { it.toEntity() }
+                )
+                local.insertRemoteKey(
+                    nextKey = if (products.size < state.config.pageSize) {
+                        null
+                    } else {
+                        skip + products.size
+                    }
+                )
+                cacheInfoDao.insertCacheInfo(CacheInfoEntity(
+                    key = "products",
+                    lastUpdated = System.currentTimeMillis())
+                )
+            }
             MediatorResult.Success(
                 endOfPaginationReached = products.size < state.config.pageSize
             )

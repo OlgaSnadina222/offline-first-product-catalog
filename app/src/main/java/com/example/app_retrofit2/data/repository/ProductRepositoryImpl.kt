@@ -7,6 +7,7 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import com.example.app_retrofit2.data.local.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.datasource.room.LocalProductDataSource
+import com.example.app_retrofit2.data.local.db.AppDatabase
 import com.example.app_retrofit2.data.local.mapper.toDomain
 import com.example.app_retrofit2.data.local.mapper.toEntity
 import com.example.app_retrofit2.data.paging.ProductRemoteMediator
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class ProductRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteProductDataSource,
     private val localDataSource: LocalProductDataSource,
-    private val cacheInfoDao: CacheInfoDao
+    private val cacheInfoDao: CacheInfoDao,
+    private val database: AppDatabase
 ) : ProductRepo {
 
     override suspend fun insertProducts(products: List<Product>) {
@@ -56,7 +58,8 @@ class ProductRepositoryImpl @Inject constructor(
                 remote = remoteDataSource,
                 local = localDataSource,
                 category = category,
-                cacheInfoDao = cacheInfoDao
+                cacheInfoDao = cacheInfoDao,
+                database = database
             ),
             pagingSourceFactory = {
                 localDataSource.pagingSource()
