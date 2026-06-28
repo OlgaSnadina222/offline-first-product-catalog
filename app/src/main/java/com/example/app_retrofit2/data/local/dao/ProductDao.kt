@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.example.app_retrofit2.data.local.entity.ProductEntity
+import com.example.app_retrofit2.data.local.entity.ProductWithCategories
 import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
 import kotlinx.coroutines.flow.Flow
 
@@ -39,5 +40,10 @@ interface ProductDao {
 
     @Query("SELECT COUNT(*) FROM products")
     suspend fun getProductsCount(): Int
+
+    @Transaction
+    @Query("""SELECT * FROM products WHERE id = :id""")
+    suspend fun getProductWithCategories(id: Int): ProductWithCategories?
+
 
 }

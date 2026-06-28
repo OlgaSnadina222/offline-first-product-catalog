@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.app_retrofit2.data.local.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.dao.CategoryDao
 import com.example.app_retrofit2.data.local.dao.FavoriteDao
+import com.example.app_retrofit2.data.local.dao.ProductCategoryCrossRefDao
 import com.example.app_retrofit2.data.local.dao.ProductDao
 import com.example.app_retrofit2.data.local.dao.RemoteKeyDao
 import com.example.app_retrofit2.data.local.db.AppDatabase
@@ -41,5 +42,8 @@ object DatabaseModule {
 
     @Provides
     fun provideCategoryDao(db: AppDatabase) : CategoryDao = db.categoryDao()
+
+    @Provides
+    fun provideProductCategoryCrossRefDao(db: AppDatabase) : ProductCategoryCrossRefDao = db.productCategoryCrossRefDao()
 
 }

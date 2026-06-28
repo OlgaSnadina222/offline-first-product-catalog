@@ -3,11 +3,13 @@ package com.example.app_retrofit2.data.local.datasource.room
 import androidx.paging.PagingSource
 import com.example.app_retrofit2.data.local.dao.CategoryDao
 import com.example.app_retrofit2.data.local.dao.FavoriteDao
+import com.example.app_retrofit2.data.local.dao.ProductCategoryCrossRefDao
 import com.example.app_retrofit2.data.local.dao.ProductDao
 import com.example.app_retrofit2.data.local.dao.RemoteKeyDao
 import com.example.app_retrofit2.data.local.entity.CategoryEntity
 import com.example.app_retrofit2.data.local.entity.FavoriteEntity
 import com.example.app_retrofit2.data.local.entity.FavoriteWithProduct
+import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRefEntity
 import com.example.app_retrofit2.data.local.entity.ProductEntity
 import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
 import com.example.app_retrofit2.data.local.entity.RemoteKeyEntity
@@ -18,7 +20,8 @@ class LocalProductDataSource @Inject constructor(
     private val productDao: ProductDao,
     private val favoriteDao: FavoriteDao,
     private val remoteKeyDao: RemoteKeyDao,
-    private val categoryDao: CategoryDao
+    private val categoryDao: CategoryDao,
+    private val crossRefDao: ProductCategoryCrossRefDao
 ){
     fun getProducts(): Flow<List<ProductEntity>> {
         return productDao.getProducts()
@@ -76,19 +79,11 @@ class LocalProductDataSource @Inject constructor(
         remoteKeyDao.clearRemoteKeys(category)
     }
 
-    suspend fun getCategories(): List<CategoryEntity> {
-        return categoryDao.getCategories()
+    suspend fun insertCrossRefs(crossRefs: List<ProductCategoryCrossRefEntity>) {
+        crossRefDao.insertCrossRefs(crossRefs)
     }
 
-    fun observeCategories(): Flow<List<CategoryEntity>> {
-        return categoryDao.observeCategories()
-    }
-
-    suspend fun insertCategories(categories: List<CategoryEntity>) {
-        categoryDao.insertCategories(categories)
-    }
-
-    suspend fun clearCategories() {
-        categoryDao.clearCategories()
+    suspend fun clearCrossRefs() {
+        crossRefDao.clearCrossRefs()
     }
 }

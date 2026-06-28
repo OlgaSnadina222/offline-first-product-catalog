@@ -10,6 +10,7 @@ import com.example.app_retrofit2.data.local.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.datasource.room.LocalProductDataSource
 import com.example.app_retrofit2.data.local.db.AppDatabase
 import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
+import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRefEntity
 import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteProductDataSource
 import com.example.app_retrofit2.data.remote.mapper.toEntity
@@ -22,7 +23,6 @@ class ProductRemoteMediator(
     private val cacheInfoDao: CacheInfoDao,
     private val database: AppDatabase
 ) : RemoteMediator<Int, ProductWithFavorite>() {
-
 
     override suspend fun load(
         loadType: LoadType,
@@ -54,15 +54,22 @@ class ProductRemoteMediator(
                         skip = skip
                     ).getOrThrow()
                 }
+            val productEntities = products.map { it.toEntity() }
+            val crossRefs = products.map {
+                    ProductCategoryCrossRefEntity(
+                        productId = it.id,
+                        categorySlug = it.category ?: ""
+                    )
+                }
 
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
                     local.clearProducts(category)
+                    local.clearCrossRefs()
                     local.clearRemoteKeys(category)
                 }
-                local.insertProducts(
-                    products.map { it.toEntity() }
-                )
+                local.insertProducts(productEntities)
+                local.insertCrossRefs(crossRefs)
                 local.insertRemoteKey(
                     category = category,
                     nextKey = if (products.size < state.config.pageSize) {
