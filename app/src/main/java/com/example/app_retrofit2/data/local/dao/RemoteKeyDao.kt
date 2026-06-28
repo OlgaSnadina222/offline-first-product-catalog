@@ -14,6 +14,6 @@ interface RemoteKeyDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRemoteKey(remoteKey: RemoteKeyEntity)
 
-    @Query("DELETE FROM remote_keys")
-    suspend fun clearRemoteKeys()
+    @Query("DELETE FROM remote_keys WHERE id = :category")
+    suspend fun clearRemoteKeys(category: String)
 }

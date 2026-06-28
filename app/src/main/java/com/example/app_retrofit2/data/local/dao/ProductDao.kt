@@ -16,21 +16,21 @@ interface ProductDao {
     fun getProducts(): Flow<List<ProductEntity>>
 
     @Transaction
-    @Query("SELECT * FROM products WHERE isVisible = 1 ORDER BY id ASC")
-    fun pagingSource(): PagingSource<Int, ProductWithFavorite>
+    @Query("SELECT * FROM products WHERE isVisible = 1 AND (:category = 'all' OR category = :category) ORDER BY id ASC")
+    fun pagingSource(category: String): PagingSource<Int, ProductWithFavorite>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProducts(products: List<ProductEntity>)
 
-    @Query("DELETE FROM products WHERE id NOT IN (SELECT productId FROM favorites)")
-    suspend fun clearNotFavoriteProducts()
+    @Query("DELETE FROM products WHERE id NOT IN (SELECT productId FROM favorites) AND category = :category")
+    suspend fun clearNotFavoriteProducts(category: String)
 
     @Query("UPDATE products SET isVisible = 0 WHERE id IN (SELECT productId FROM favorites)")
     suspend fun hideFavoritesCashedProducts()
 
     @Transaction
-    suspend fun clearProducts() {
-        clearNotFavoriteProducts()
+    suspend fun clearProducts(category: String) {
+        clearNotFavoriteProducts(category)
         hideFavoritesCashedProducts()
     }
 

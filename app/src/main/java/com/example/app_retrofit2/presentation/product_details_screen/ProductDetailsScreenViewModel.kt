@@ -3,7 +3,6 @@ package com.example.app_retrofit2.presentation.product_details_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.app_retrofit2.domain.model.Product
-import com.example.app_retrofit2.domain.repositoty.ProductRepo
 import com.example.app_retrofit2.domain.usecase.GetProductByIdUseCase
 import com.example.app_retrofit2.presentation.common.events.ProductDetailsScreenUiEvents
 import com.example.app_retrofit2.presentation.common.states.UiState

@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -98,19 +100,16 @@ fun FavoritesScreen(
                 }
             }
         }
-        IconButton(
+        FloatingActionButton(
             onClick = { onBackClick() },
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .statusBarsPadding()
-                .offset(y = (-32).dp)
-                .padding(start = 8.dp)
+            modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
+            containerColor = Color.White.copy(alpha = 0.9f),
+            contentColor = Color.Black,
+            shape = CircleShape
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = Color.Black,
-                modifier = Modifier.size(36.dp)
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Back to ProductScreen"
             )
         }
     }

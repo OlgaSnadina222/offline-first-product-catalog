@@ -17,14 +17,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -43,8 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -52,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.app_retrofit2.R
@@ -69,7 +65,8 @@ fun ProductsScreen(
     viewModel: ProductsScreenViewModel = hiltViewModel()
     ) {
     val state by viewModel.state.collectAsState()
-    val categoryState by viewModel.categoriesState.collectAsState()
+    val categoryState by viewModel.categoriesState.collectAsStateWithLifecycle()
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
     val products = viewModel.pagingProducts.collectAsLazyPagingItems()
     val filters by viewModel.filters.collectAsState()
     var expanded by remember { mutableStateOf(false) }
@@ -109,31 +106,55 @@ fun ProductsScreen(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
-                            categoryState.categories.forEach { category ->
-                                val isSelected = category.slug == categoryState.selectedCategorySlug
-                                DropdownMenuItem(
-                                    onClick = {
-                                        viewModel.onEvent(
-                                            ProductsScreenUiEvents.OnCategorySelected(
-                                                category.slug
+                            when (val state = categoryState) {
+                                UiState.Loading -> {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                text = "Loading...",
+                                                color = Color.Red)
+                                               },
+                                        onClick = { expanded = false }
+                                    )
+                                }
+                                is UiState.Success -> {
+                                    state.data.forEach { category ->
+                                        val isSelected = category.slug == selectedCategory
+                                        DropdownMenuItem(
+                                            onClick = { viewModel.onEvent(
+                                                    ProductsScreenUiEvents.OnCategorySelected(
+                                                        category.slug
+                                                    )
+                                                )
+                                                expanded = false
+                                            },
+                                            text = {
+                                                Text(
+                                                    text = category.name,
+                                                    fontWeight = if (isSelected) FontWeight.Bold
+                                                        else FontWeight.Normal,
+                                                    color = if (isSelected) Color.Black
+                                                        else Color.DarkGray
+                                                )
+                                            },
+                                            modifier = Modifier.background(
+                                                if (isSelected) Color.LightGray.copy(alpha = 0.3f)
+                                                else Color.Transparent
                                             )
                                         )
-                                        expanded = false
-                                    },
-                                    text = {
-                                        Text(
-                                            text = category.name,
-                                            fontWeight = if (isSelected) FontWeight.Bold
-                                            else FontWeight.Normal,
-                                            color = if (isSelected) Color.Black
-                                            else Color.DarkGray
-                                        )
-                                    },
-                                    modifier = Modifier.background(
-                                        if (isSelected) Color.LightGray.copy(alpha = 0.3f)
-                                        else Color.Transparent
+                                    }
+                                }
+                                is UiState.Error -> {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                text = "Failed to load categories",
+                                                color = Color.Red
+                                            )
+                                        },
+                                        onClick = { expanded = false }
                                     )
-                                )
+                                }
                             }
                         }
                     }
@@ -213,7 +234,8 @@ fun ProductsScreen(
                             modifier = Modifier.fillMaxSize()
                                 .padding(horizontal = 10.dp)
                         ) {
-                            items(products.itemSnapshotList) { product ->
+                            items(products.itemCount) { index ->
+                                val product = products[index]
                                 ProductItem(
                                     product = product!!,
                                     onClickCard = { onProductClick(product.id) },

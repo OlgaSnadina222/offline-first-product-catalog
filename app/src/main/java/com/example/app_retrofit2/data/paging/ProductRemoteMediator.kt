@@ -1,5 +1,6 @@
 package com.example.app_retrofit2.data.paging
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -31,7 +32,7 @@ class ProductRemoteMediator(
             val skip = when(loadType) {
                 LoadType.REFRESH -> 0
                 LoadType.APPEND -> {
-                    val remoteKey = local.getRemoteKey()
+                    val remoteKey = local.getRemoteKey(category)
                     val nextKey = remoteKey?.nextKey ?: return MediatorResult.Success(
                         endOfPaginationReached = true
                     )
@@ -39,6 +40,7 @@ class ProductRemoteMediator(
                 }
                 LoadType.PREPEND -> return MediatorResult.Success(true)
             }
+            Log.d("MediatorLog", "Api call")
             val products = if (category != "all") {
                 remote.getProductsByCategory(
                         category = category,
@@ -55,13 +57,14 @@ class ProductRemoteMediator(
 
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                    local.clearProducts()
-                    local.clearRemoteKeys()
+                    local.clearProducts(category)
+                    local.clearRemoteKeys(category)
                 }
                 local.insertProducts(
                     products.map { it.toEntity() }
                 )
                 local.insertRemoteKey(
+                    category = category,
                     nextKey = if (products.size < state.config.pageSize) {
                         null
                     } else {
@@ -69,7 +72,7 @@ class ProductRemoteMediator(
                     }
                 )
                 cacheInfoDao.insertCacheInfo(CacheInfoEntity(
-                    key = "products",
+                    key = "products_$category",
                     lastUpdated = System.currentTimeMillis())
                 )
             }
@@ -82,15 +85,16 @@ class ProductRemoteMediator(
     }
 
     override suspend fun initialize(): InitializeAction {
-        return InitializeAction.LAUNCH_INITIAL_REFRESH
-//        val cacheInfo = cacheInfoDao.getCacheInfo("products")
-//        return if (
-//            cacheInfo == null ||
-//            System.currentTimeMillis() - cacheInfo.lastUpdated > 60 * 60 * 1000
-//        ) {
-//            InitializeAction.LAUNCH_INITIAL_REFRESH
-//        } else {
-//            InitializeAction.SKIP_INITIAL_REFRESH
-//        }
+        val cacheInfo = cacheInfoDao.getCacheInfo("products_$category")
+        return if (
+            cacheInfo == null ||
+            System.currentTimeMillis() - cacheInfo.lastUpdated > 20 * 1000
+        ) {
+            Log.d("MediatorLog", "LAUNCH_INITIAL_REFRESH")
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        } else {
+            Log.d("MediatorLog", "SKIP_INITIAL_REFRESH ")
+            InitializeAction.SKIP_INITIAL_REFRESH
+        }
     }
 }

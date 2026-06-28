@@ -1,10 +1,8 @@
 package com.example.app_retrofit2.presentation.products_screen
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
-import androidx.paging.map
 import com.example.app_retrofit2.domain.model.Category
 import com.example.app_retrofit2.domain.model.Product
 import com.example.app_retrofit2.domain.usecase.GetCategoriesUseCase
@@ -16,11 +14,8 @@ import com.example.app_retrofit2.presentation.common.states.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,8 +27,10 @@ class ProductsScreenViewModel @Inject constructor(
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ): ViewModel() {
     val state = MutableStateFlow<UiState<List<Product>>>(UiState.Loading)
-    private val _categoriesState = MutableStateFlow(CategoriesUiState())
+    private val _categoriesState = MutableStateFlow<UiState<List<Category>>>(UiState.Loading)
     val categoriesState = _categoriesState.asStateFlow()
+    private val _selectedCategory = MutableStateFlow("all")
+    val selectedCategory = _selectedCategory.asStateFlow()
     private val _filters = MutableStateFlow(ProductFilters())
     val filters = _filters.asStateFlow()
     private val _query = MutableStateFlow("")
@@ -72,9 +69,7 @@ class ProductsScreenViewModel @Inject constructor(
                 }
             }
             is ProductsScreenUiEvents.OnCategorySelected -> {
-                _categoriesState.value = _categoriesState.value.copy(
-                    selectedCategorySlug = event.categorySlug
-                )
+                _selectedCategory.value = event.categorySlug
                 _filters.value = _filters.value.copy(
                     category = event.categorySlug
                 )
@@ -92,27 +87,24 @@ class ProductsScreenViewModel @Inject constructor(
         loadCategories()
     }
 
-    private fun loadCategories() {
+    private fun loadCategories( forceRefresh: Boolean = false) {
         viewModelScope.launch {
-            getCategoriesUseCase().onSuccess { list ->
-                _categoriesState.value = _categoriesState.value.copy(
-                    categories = listOf(
-                        Category(
-                            slug = "all",
-                            name = "All"
+            _categoriesState.value = UiState.Loading
+            getCategoriesUseCase(forceRefresh)
+                .onSuccess { categories ->
+                    _categoriesState.value = UiState.Success(
+                            listOf(
+                                Category(
+                                    slug = "all",
+                                    name = "All"
+                                )
+                            ) + categories
                         )
-                    ) + list
-                )
                 }
                 .onFailure { error ->
-                    state.value = UiState.Error.Unknown(error.message ?: "Unknown error")
+                    _categoriesState.value = UiState.Error.Unknown(error.message ?: "Unknown error")
                 }
         }
-    }
-
-    private fun onQueryChange(newQuery: String) {
-        _filters.value = _filters.value.copy(
-            query = newQuery)
     }
 
     private fun toggleFavorite(productId: Int) {

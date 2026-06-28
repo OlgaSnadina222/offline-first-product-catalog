@@ -21,18 +21,18 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class ProductRepositoryImpl @Inject constructor(
-    private val remoteDataSource: RemoteProductDataSource,
-    private val localDataSource: LocalProductDataSource,
+    private val remoteProductDataSource: RemoteProductDataSource,
+    private val localProductDataSource: LocalProductDataSource,
     private val cacheInfoDao: CacheInfoDao,
     private val database: AppDatabase
 ) : ProductRepo {
 
     override suspend fun insertProducts(products: List<Product>) {
-        localDataSource.insertProducts(products.map { it.toEntity() })
+        localProductDataSource.insertProducts(products.map { it.toEntity() })
     }
 
-    override suspend fun clearProducts() {
-        localDataSource.clearProducts()
+    override suspend fun clearProducts(category: String) {
+        localProductDataSource.clearProducts(category)
     }
 
     override fun searchProducts(query: String): Flow<PagingData<Product>> {
@@ -40,7 +40,7 @@ class ProductRepositoryImpl @Inject constructor(
             config = PagingConfig(pageSize = 20),
             pagingSourceFactory = {
                 SearchProductsPagingSource(
-                    remoteRepo = remoteDataSource,
+                    remoteRepo = remoteProductDataSource,
                     query = query
                 )
             }
@@ -55,14 +55,14 @@ class ProductRepositoryImpl @Inject constructor(
                 enablePlaceholders = false
             ),
             remoteMediator = ProductRemoteMediator(
-                remote = remoteDataSource,
-                local = localDataSource,
+                remote = remoteProductDataSource,
+                local = localProductDataSource,
                 category = category,
                 cacheInfoDao = cacheInfoDao,
                 database = database
             ),
             pagingSourceFactory = {
-                localDataSource.pagingSource()
+                localProductDataSource.pagingSource(category)
             }
         ).flow.map { pagingData ->
             pagingData.map { productWithFavorite ->
@@ -73,26 +73,26 @@ class ProductRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getProductById(id: Int): Result<Product> {
-        val localProduct = localDataSource.getProductById(id)
+        val localProduct = localProductDataSource.getProductById(id)
         if (localProduct != null) {
             return Result.success(localProduct.toDomain())
         }
-        return remoteDataSource.getProductById(id).map { dto ->
-            localDataSource.insertProducts(listOf(dto.toEntity()))
+        return remoteProductDataSource.getProductById(id).map { dto ->
+            localProductDataSource.insertProducts(listOf(dto.toEntity()))
             dto.toEntity().toDomain()
         }
     }
 
     override suspend fun toggleFavorite(productId: Int) {
-        if (localDataSource.isFavorite(productId)) {
-            localDataSource.removeFavorite(productId)
+        if (localProductDataSource.isFavorite(productId)) {
+            localProductDataSource.removeFavorite(productId)
         } else {
-            localDataSource.addFavorite(productId)
+            localProductDataSource.addFavorite(productId)
         }
     }
 
     override fun getFavoriteProducts(): Flow<List<Product>> {
-        return localDataSource.getFavoriteProducts().map { favsWithProducts ->
+        return localProductDataSource.getFavoriteProducts().map { favsWithProducts ->
             favsWithProducts.map { favWithProduct ->
                 favWithProduct.product.toDomain().copy(isFavorite = true) }
         }
