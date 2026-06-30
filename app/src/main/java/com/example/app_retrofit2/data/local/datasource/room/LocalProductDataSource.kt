@@ -6,13 +6,13 @@ import com.example.app_retrofit2.data.local.dao.FavoriteDao
 import com.example.app_retrofit2.data.local.dao.ProductCategoryCrossRefDao
 import com.example.app_retrofit2.data.local.dao.ProductDao
 import com.example.app_retrofit2.data.local.dao.RemoteKeyDao
-import com.example.app_retrofit2.data.local.entity.CategoryEntity
 import com.example.app_retrofit2.data.local.entity.FavoriteEntity
 import com.example.app_retrofit2.data.local.entity.FavoriteWithProduct
-import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRefEntity
+import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRef
 import com.example.app_retrofit2.data.local.entity.ProductEntity
 import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
 import com.example.app_retrofit2.data.local.entity.RemoteKeyEntity
+import com.example.app_retrofit2.domain.model.ProductSort
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -26,8 +26,12 @@ class LocalProductDataSource @Inject constructor(
     fun getProducts(): Flow<List<ProductEntity>> {
         return productDao.getProducts()
     }
-    fun pagingSource(category: String): PagingSource<Int, ProductWithFavorite> {
-        return productDao.pagingSource(category)
+    fun pagingSource(category: String, sort: ProductSort): PagingSource<Int, ProductWithFavorite> {
+        return when (sort) {
+            ProductSort.DEFAULT -> productDao.pagingSource(category)
+            ProductSort.PRICE_ASC -> productDao.pagingSourcePriceAsc(category)
+            ProductSort.PRICE_DESC -> productDao.pagingSourcePriceDesc(category)
+        }
     }
 
     suspend fun getProductById(id: Int): ProductEntity? {
@@ -79,11 +83,11 @@ class LocalProductDataSource @Inject constructor(
         remoteKeyDao.clearRemoteKeys(category)
     }
 
-    suspend fun insertCrossRefs(crossRefs: List<ProductCategoryCrossRefEntity>) {
+    suspend fun insertCrossRefs(crossRefs: List<ProductCategoryCrossRef>) {
         crossRefDao.insertCrossRefs(crossRefs)
     }
 
-    suspend fun clearCrossRefs() {
-        crossRefDao.clearCrossRefs()
+    suspend fun clearCrossRefs(category: String) {
+        crossRefDao.clearCrossRefs(category)
     }
 }

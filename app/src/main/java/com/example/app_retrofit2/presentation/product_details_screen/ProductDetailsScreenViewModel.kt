@@ -3,23 +3,34 @@ package com.example.app_retrofit2.presentation.product_details_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.app_retrofit2.domain.model.Product
+import com.example.app_retrofit2.domain.model.UserPreferences
 import com.example.app_retrofit2.domain.usecase.GetProductByIdUseCase
+import com.example.app_retrofit2.domain.usecase.preferences.GetUserPreferencesUseCase
 import com.example.app_retrofit2.presentation.common.events.ProductDetailsScreenUiEvents
 import com.example.app_retrofit2.presentation.common.states.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProductDetailsScreenViewModel @Inject constructor(
-    private val getProductByIdUseCase: GetProductByIdUseCase
+    private val getProductByIdUseCase: GetProductByIdUseCase,
+    private val getUserPreferencesUseCase: GetUserPreferencesUseCase
+
 ): ViewModel() {
     private val _state = MutableStateFlow<UiState<Product>>(UiState.Loading)
     val state: StateFlow<UiState<Product>> = _state.asStateFlow()
+    val preferences = getUserPreferencesUseCase().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = UserPreferences()
+    )
 
 
     fun onEvent(event: ProductDetailsScreenUiEvents) {

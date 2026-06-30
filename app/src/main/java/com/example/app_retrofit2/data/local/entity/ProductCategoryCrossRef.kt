@@ -26,7 +26,7 @@ import androidx.room.Index
         Index("categorySlug")
     ]
 )
-data class ProductCategoryCrossRefEntity(
+data class ProductCategoryCrossRef(
     val productId: Int,
     val categorySlug: String
 )

@@ -2,6 +2,7 @@ package com.example.app_retrofit2.domain.usecase
 
 import androidx.paging.PagingData
 import com.example.app_retrofit2.domain.model.Product
+import com.example.app_retrofit2.domain.model.ProductSort
 import com.example.app_retrofit2.domain.repositoty.ProductRepo
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -9,9 +10,10 @@ import kotlinx.coroutines.flow.Flow
 class GetProductsUseCase @Inject constructor(
     private val productRepository: ProductRepo
 ) {
-    operator fun invoke(): Flow<PagingData<Product>> {
+    operator fun invoke(sort: ProductSort): Flow<PagingData<Product>> {
         return productRepository.getPagedProducts(
-            category = "all"
+            category = "all",
+            sort = sort
         )
     }
 }

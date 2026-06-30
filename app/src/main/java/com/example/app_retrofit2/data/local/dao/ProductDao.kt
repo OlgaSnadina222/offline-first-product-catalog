@@ -20,6 +20,14 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE isVisible = 1 AND (:category = 'all' OR category = :category) ORDER BY id ASC")
     fun pagingSource(category: String): PagingSource<Int, ProductWithFavorite>
 
+    @Transaction
+    @Query("SELECT * FROM products WHERE isVisible = 1 AND (:category = 'all' OR category = :category) ORDER BY price ASC")
+    fun pagingSourcePriceAsc(category: String): PagingSource<Int, ProductWithFavorite>
+
+    @Transaction
+    @Query("SELECT * FROM products WHERE isVisible = 1 AND (:category = 'all' OR category = :category) ORDER BY price DESC")
+    fun pagingSourcePriceDesc(category: String): PagingSource<Int, ProductWithFavorite>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProducts(products: List<ProductEntity>)
 

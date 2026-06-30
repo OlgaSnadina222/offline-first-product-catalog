@@ -40,13 +40,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.example.app_retrofit2.R
 import com.example.app_retrofit2.domain.model.Product
+import com.example.app_retrofit2.domain.model.ThemeMode
+import com.example.app_retrofit2.domain.model.UserPreferences
 import com.example.app_retrofit2.presentation.common.events.ProductDetailsScreenUiEvents
 import com.example.app_retrofit2.presentation.common.states.UiState
+import com.example.app_retrofit2.presentation.products_screen.backgroundForTheme
 import com.example.app_retrofit2.presentation.theme.ProductCardColor
 import com.example.app_retrofit2.presentation.theme.ProductTitleColor
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
 @Composable
 fun ProductDetailsScreen(
@@ -55,14 +62,16 @@ fun ProductDetailsScreen(
     viewModel: ProductDetailsScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.onEvent(ProductDetailsScreenUiEvents.GetProductById(productId))
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        val background = backgroundForTheme(preferences.theme)
         Image(
-            painter = painterResource(R.drawable.background),
+            painter = painterResource(background),
             contentDescription = "ProductDetailsScreen background",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()

@@ -12,7 +12,7 @@ import com.example.app_retrofit2.data.local.dao.RemoteKeyDao
 import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
 import com.example.app_retrofit2.data.local.entity.CategoryEntity
 import com.example.app_retrofit2.data.local.entity.FavoriteEntity
-import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRefEntity
+import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRef
 import com.example.app_retrofit2.data.local.entity.ProductEntity
 import com.example.app_retrofit2.data.local.entity.RemoteKeyEntity
 import com.example.app_retrofit2.data.local.utils.Converters
@@ -25,7 +25,7 @@ import com.example.app_retrofit2.data.local.utils.Converters
         FavoriteEntity::class,
         RemoteKeyEntity::class,
         CategoryEntity::class,
-        ProductCategoryCrossRefEntity::class
+        ProductCategoryCrossRef::class
                ],
     exportSchema = false
 )

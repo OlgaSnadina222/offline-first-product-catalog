@@ -13,7 +13,7 @@ data class ProductWithCategories(
         entity = CategoryEntity::class,
         entityColumn = "slug",
         associateBy = Junction(
-            ProductCategoryCrossRefEntity::class,
+            ProductCategoryCrossRef::class,
             parentColumn = "productId",
             entityColumn = "categorySlug"
         )

@@ -10,7 +10,7 @@ import com.example.app_retrofit2.data.local.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.datasource.room.LocalProductDataSource
 import com.example.app_retrofit2.data.local.db.AppDatabase
 import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
-import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRefEntity
+import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRef
 import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteProductDataSource
 import com.example.app_retrofit2.data.remote.mapper.toEntity
@@ -56,7 +56,7 @@ class ProductRemoteMediator(
                 }
             val productEntities = products.map { it.toEntity() }
             val crossRefs = products.map {
-                    ProductCategoryCrossRefEntity(
+                    ProductCategoryCrossRef(
                         productId = it.id,
                         categorySlug = it.category ?: ""
                     )
@@ -65,7 +65,7 @@ class ProductRemoteMediator(
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
                     local.clearProducts(category)
-                    local.clearCrossRefs()
+                    local.clearCrossRefs(category)
                     local.clearRemoteKeys(category)
                 }
                 local.insertProducts(productEntities)

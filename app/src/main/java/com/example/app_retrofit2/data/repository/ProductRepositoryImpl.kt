@@ -15,6 +15,7 @@ import com.example.app_retrofit2.data.paging.SearchProductsPagingSource
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteProductDataSource
 import com.example.app_retrofit2.data.remote.mapper.toEntity
 import com.example.app_retrofit2.domain.model.Product
+import com.example.app_retrofit2.domain.model.ProductSort
 import com.example.app_retrofit2.domain.repositoty.ProductRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -48,7 +49,7 @@ class ProductRepositoryImpl @Inject constructor(
     }
 
     @OptIn(ExperimentalPagingApi::class)
-    override fun getPagedProducts(category: String): Flow<PagingData<Product>> {
+    override fun getPagedProducts(category: String, sort: ProductSort): Flow<PagingData<Product>> {
         return Pager(
             config = PagingConfig(
                 pageSize = 20,
@@ -62,7 +63,10 @@ class ProductRepositoryImpl @Inject constructor(
                 database = database
             ),
             pagingSourceFactory = {
-                localProductDataSource.pagingSource(category)
+                localProductDataSource.pagingSource(
+                    category = category,
+                    sort = sort
+                )
             }
         ).flow.map { pagingData ->
             pagingData.map { productWithFavorite ->

@@ -16,14 +16,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -46,16 +47,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.app_retrofit2.R
+import com.example.app_retrofit2.domain.model.ProductSort
+import com.example.app_retrofit2.domain.model.ThemeMode
 import com.example.app_retrofit2.presentation.common.events.ProductsScreenUiEvents
 import com.example.app_retrofit2.presentation.common.states.UiState
 import com.example.app_retrofit2.presentation.theme.CategoryMenuColor
 import com.example.app_retrofit2.presentation.theme.FavoriteColor
 import com.example.app_retrofit2.presentation.theme.ProductSearchBarColor
+import com.example.app_retrofit2.presentation.theme.ProductTitleColor
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -72,12 +77,14 @@ fun ProductsScreen(
     var expanded by remember { mutableStateOf(false) }
     var isFavorite by remember { mutableStateOf(false) }
     val pullState = rememberPullToRefreshState()
+    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
 
     Scaffold {
         Box(modifier = Modifier.fillMaxSize()) {
+            val background = backgroundForTheme(preferences.theme)
             Image(
-                painter = painterResource(R.drawable.background),
+                painter = painterResource(background),
                 contentDescription = "Product screen background",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -106,6 +113,113 @@ fun ProductsScreen(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
+                            Text(
+                                text = "Theme",
+                                color = ProductTitleColor,
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(
+                                    horizontal = 8.dp,
+                                    vertical = 8.dp
+                                ),
+                                fontWeight = FontWeight.Bold
+                            )
+                            ThemeMode.entries.forEach { theme ->
+                                val isSelected = theme == preferences.theme
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            when (theme) {
+                                                ThemeMode.SYSTEM -> "System"
+                                                ThemeMode.LIGHT -> "Light"
+                                                ThemeMode.DARK -> "Dark"
+                                            },
+                                            fontWeight = if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal,
+                                            color = if (isSelected) Color.Black
+                                            else Color.DarkGray
+                                        )
+                                    },
+
+                                    trailingIcon = {
+                                        if (preferences.theme == theme) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.background(
+                                        if (isSelected) Color.LightGray.copy(alpha = 0.3f)
+                                        else Color.Transparent
+                                    ),
+
+                                    onClick = {
+                                        viewModel.onEvent(
+                                            ProductsScreenUiEvents.OnThemeSelected(theme)
+                                        )
+                                        expanded = false
+                                    }
+                                )
+                            }
+                            HorizontalDivider(color = Color.Gray)
+                            Text(
+                                text = "Sort",
+                                color = ProductTitleColor,
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(
+                                    horizontal = 8.dp,
+                                    vertical = 8.dp
+                                ),
+                                fontWeight = FontWeight.Bold
+                            )
+                            ProductSort.entries.forEach { sort ->
+                                val isSelected = sort == preferences.sort
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            when (sort) {
+                                                ProductSort.DEFAULT -> "Default"
+                                                ProductSort.PRICE_ASC -> "Price ↑"
+                                                ProductSort.PRICE_DESC -> "Price ↓"
+                                            },
+                                            fontWeight = if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal,
+                                            color = if (isSelected) Color.Black
+                                            else Color.DarkGray
+                                        )
+                                    },
+
+                                    trailingIcon = {
+                                        if (preferences.sort == sort) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.background(
+                                        if (isSelected) Color.LightGray.copy(alpha = 0.3f)
+                                        else Color.Transparent
+                                    ),
+                                    onClick = {
+                                        viewModel.onEvent(
+                                            ProductsScreenUiEvents.OnSortSelected(sort)
+                                        )
+                                        expanded = false
+                                    }
+                                )
+                            }
+                            HorizontalDivider(color = Color.Gray)
+                            Text(
+                                text = "Categories",
+                                color = ProductTitleColor,
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(
+                                    horizontal = 8.dp,
+                                    vertical = 8.dp
+                                ),
+                                fontWeight = FontWeight.Bold
+                            )
                             when (val state = categoryState) {
                                 UiState.Loading -> {
                                     DropdownMenuItem(
@@ -136,6 +250,14 @@ fun ProductsScreen(
                                                     color = if (isSelected) Color.Black
                                                         else Color.DarkGray
                                                 )
+                                            },
+                                            trailingIcon = {
+                                                if (isSelected) {
+                                                    Icon(
+                                                        Icons.Default.Check,
+                                                        contentDescription = null
+                                                    )
+                                                }
                                             },
                                             modifier = Modifier.background(
                                                 if (isSelected) Color.LightGray.copy(alpha = 0.3f)
