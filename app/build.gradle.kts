@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.runtime)
+    implementation(libs.runtime)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
@@ -83,6 +84,17 @@ dependencies {
     implementation(libs.androidx.room.paging.vroomversion)
     implementation(libs.gson)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work.v120)
+    ksp(libs.androidx.hilt.compiler.v120)
+
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 
 
 

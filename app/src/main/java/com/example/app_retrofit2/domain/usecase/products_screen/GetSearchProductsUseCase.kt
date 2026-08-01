@@ -1,0 +1,19 @@
+package com.example.app_retrofit2.domain.usecase.products_screen
+
+import androidx.paging.PagingData
+import com.example.app_retrofit2.domain.model.Product
+import com.example.app_retrofit2.domain.repositoty.ProductRepo
+import jakarta.inject.Inject
+import kotlinx.coroutines.flow.Flow
+
+class GetSearchProductsUseCase @Inject constructor(
+    private val productRepository: ProductRepo
+) {
+    operator fun invoke(
+        query: String
+    ): Flow<PagingData<Product>> {
+        return productRepository.searchProducts(
+            query = query
+        )
+    }
+}

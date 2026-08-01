@@ -2,7 +2,7 @@ package com.example.app_retrofit2.di
 
 import com.example.app_retrofit2.data.repository.CategoryRepositoryImpl
 import com.example.app_retrofit2.data.repository.ProductRepositoryImpl
-import com.example.app_retrofit2.data.repository.UserPreferencesRepositoryImpl
+import com.example.app_retrofit2.data.local.datastore.repository.UserPreferencesRepositoryImpl
 import com.example.app_retrofit2.domain.repositoty.CategoryRepo
 import com.example.app_retrofit2.domain.repositoty.ProductRepo
 import com.example.app_retrofit2.domain.repositoty.UserPreferencesRepo

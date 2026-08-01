@@ -1,30 +1,29 @@
 package com.example.app_retrofit2.presentation.products_screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import com.example.app_retrofit2.data.connectivity.ConnectivityObserver
 import com.example.app_retrofit2.domain.model.Category
-import com.example.app_retrofit2.domain.model.Product
-import com.example.app_retrofit2.domain.model.UserPreferences
-import com.example.app_retrofit2.domain.usecase.GetCategoriesUseCase
-import com.example.app_retrofit2.domain.usecase.GetPagedProductsUseCase
-import com.example.app_retrofit2.domain.usecase.GetSearchProductsUseCase
-import com.example.app_retrofit2.domain.usecase.ToggleFavoriteUseCase
+import com.example.app_retrofit2.domain.usecase.products_screen.GetCategoriesUseCase
+import com.example.app_retrofit2.domain.usecase.products_screen.GetPagedProductsUseCase
+import com.example.app_retrofit2.domain.usecase.products_screen.GetSearchProductsUseCase
+import com.example.app_retrofit2.domain.usecase.products_screen.ToggleFavoriteUseCase
 import com.example.app_retrofit2.domain.usecase.preferences.GetUserPreferencesUseCase
 import com.example.app_retrofit2.domain.usecase.preferences.SaveSortUseCase
 import com.example.app_retrofit2.domain.usecase.preferences.SaveThemeUseCase
+import com.example.app_retrofit2.domain.usecase.products_screen.DeleteProductUseCase
 import com.example.app_retrofit2.presentation.common.events.ProductsScreenUiEvents
 import com.example.app_retrofit2.presentation.common.states.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,82 +35,60 @@ class ProductsScreenViewModel @Inject constructor(
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val getUserPreferencesUseCase: GetUserPreferencesUseCase,
     private val saveThemeUseCase: SaveThemeUseCase,
-    private val saveSortUseCase: SaveSortUseCase
+    private val saveSortUseCase: SaveSortUseCase,
+    private val deleteProductUseCase: DeleteProductUseCase,
+    private val connectivityObserver: ConnectivityObserver
 ): ViewModel() {
-    val state = MutableStateFlow<UiState<List<Product>>>(UiState.Loading)
     private val _categoriesState = MutableStateFlow<UiState<List<Category>>>(UiState.Loading)
     val categoriesState = _categoriesState.asStateFlow()
-    private val _selectedCategory = MutableStateFlow("all")
-    val selectedCategory = _selectedCategory.asStateFlow()
-    private val _filters = MutableStateFlow(ProductFilters())
-    val filters = _filters.asStateFlow()
-    private val _query = MutableStateFlow("")
-    val query = _query.asStateFlow()
-    private val mode = MutableStateFlow<ProductsMode>(ProductsMode.All("all"))
-    val preferences = getUserPreferencesUseCase().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = UserPreferences()
-        )
-    private val sort = preferences.map { it.sort }.distinctUntilChanged()
 
+    private val _productUiState = MutableStateFlow(ProductsUiState())
+    val productUiState = _productUiState.asStateFlow()
+    val isConnected = connectivityObserver.isConnected
 
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    val pagingProducts = mode.flatMapLatest { mode ->
-//        when(mode) {
-//            is ProductsMode.All -> getPagedProductsUseCase(
-//                category = mode.category,
-//                sort =
-//            )
-//            is ProductsMode.SearchMode -> {
-//                getSearchProductsUseCase(
-//                    mode.query
-//                )
-//            }
-//        }
-//    }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingProducts = combine(
-        mode,
-        sort
-    ) { mode, sort -> mode to sort
-    }.flatMapLatest { (mode, sort) ->
-        when (mode) {
-            is ProductsMode.All -> getPagedProductsUseCase(
-                    category = mode.category,
-                    sort = sort
+    val pagingProducts = productUiState.flatMapLatest { productUiState ->
+        when (productUiState.filters.mode) {
+            ProductsMode.CATEGORY -> getPagedProductsUseCase(
+                    category = productUiState.filters.category,
+                    sort = productUiState.preferences.sort
                 )
-            is ProductsMode.SearchMode -> getSearchProductsUseCase(mode.query)
+            ProductsMode.SEARCH -> getSearchProductsUseCase(productUiState.filters.query)
         }
     }.cachedIn(viewModelScope)
 
     fun onEvent(event: ProductsScreenUiEvents) {
         when(event) {
             is ProductsScreenUiEvents.OnQueryChange -> {
-                _filters.value = _filters.value.copy(
-                    query = event.query)
-                _query.value = event.query
-                if (event.query.isBlank()) {
-                    mode.value = ProductsMode.All(
-                        _filters.value.category
-                    )
-                } else {
-                    mode.value = ProductsMode.SearchMode(
-                        event.query
+                _productUiState.update { uiState ->
+                    uiState.copy(
+                        filters = uiState.filters.copy(
+                            query = event.query,
+                            mode = if (event.query.isBlank()){
+                                ProductsMode.CATEGORY
+                            } else {
+                                ProductsMode.SEARCH
+                            }
+                        )
                     )
                 }
             }
             is ProductsScreenUiEvents.OnCategorySelected -> {
-                _selectedCategory.value = event.categorySlug
-                _filters.value = _filters.value.copy(
-                    category = event.categorySlug
-                )
-                if (_query.value.isBlank()) {
-                    mode.value = ProductsMode.All(event.categorySlug)
+                _productUiState.update { uiState ->
+                    uiState.copy(
+                        filters = uiState.filters.copy(
+                            category = event.categorySlug,
+                            mode = if (uiState.filters.query.isBlank()){
+                                ProductsMode.CATEGORY
+                            } else {
+                                ProductsMode.SEARCH
+                            }
+                        )
+                    )
                 }
             }
-            is ProductsScreenUiEvents.ToggleFavorite -> {
+            is ProductsScreenUiEvents.OnToggleFavorite -> {
                 toggleFavorite(event.productId)
             }
             is ProductsScreenUiEvents.OnThemeSelected -> {
@@ -124,10 +101,27 @@ class ProductsScreenViewModel @Inject constructor(
                     saveSortUseCase(event.sort)
                 }
             }
+            is ProductsScreenUiEvents.OnExpand -> {
+                _productUiState.update { uiState ->
+                    uiState.copy(
+                        expanded = event.expanded
+                    )
+                }
+            }
+            is ProductsScreenUiEvents.OnDeleteProduct -> {
+                deleteProduct(event.productId)
+            }
         }
     }
 
     init {
+        getUserPreferencesUseCase().onEach { preferences ->
+            _productUiState.update { uiState ->
+                uiState.copy(
+                    preferences = preferences
+                )
+            }
+        }.launchIn(viewModelScope)
         loadCategories()
     }
 
@@ -154,6 +148,18 @@ class ProductsScreenViewModel @Inject constructor(
     private fun toggleFavorite(productId: Int) {
         viewModelScope.launch {
             toggleFavoriteUseCase(productId)
+        }
+    }
+
+    private fun deleteProduct(productId: Int) {
+        viewModelScope.launch {
+            deleteProductUseCase(productId)
+                .onSuccess {
+                    Log.e("ProductsScreen", "$productId - Delete success")
+                }
+                .onFailure {
+                    Log.e("ProductsScreen", "$productId - Delete failed")
+            }
         }
     }
 }

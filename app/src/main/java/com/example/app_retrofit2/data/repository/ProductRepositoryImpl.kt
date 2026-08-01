@@ -5,15 +5,21 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-import com.example.app_retrofit2.data.local.dao.CacheInfoDao
-import com.example.app_retrofit2.data.local.datasource.room.LocalProductDataSource
-import com.example.app_retrofit2.data.local.db.AppDatabase
-import com.example.app_retrofit2.data.local.mapper.toDomain
-import com.example.app_retrofit2.data.local.mapper.toEntity
+import androidx.room.withTransaction
+import com.example.app_retrofit2.data.local.room.dao.CacheInfoDao
+import com.example.app_retrofit2.data.local.room.dao.PendingOperationDao
+import com.example.app_retrofit2.data.local.room.datasource.LocalProductDataSource
+import com.example.app_retrofit2.data.local.room.db.AppDatabase
+import com.example.app_retrofit2.data.local.room.entity.PendingOperationEntity
+import com.example.app_retrofit2.data.local.room.mapper.toDomain
+import com.example.app_retrofit2.data.local.room.mapper.toEntity
 import com.example.app_retrofit2.data.paging.ProductRemoteMediator
-import com.example.app_retrofit2.data.paging.SearchProductsPagingSource
+import com.example.app_retrofit2.data.remote.paging.SearchProductsPagingSource
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteProductDataSource
 import com.example.app_retrofit2.data.remote.mapper.toEntity
+import com.example.app_retrofit2.data.sync.PendingOperationType
+import com.example.app_retrofit2.data.sync.SyncScheduler
+import com.example.app_retrofit2.data.sync.SyncStatus
 import com.example.app_retrofit2.domain.model.Product
 import com.example.app_retrofit2.domain.model.ProductSort
 import com.example.app_retrofit2.domain.repositoty.ProductRepo
@@ -25,7 +31,10 @@ class ProductRepositoryImpl @Inject constructor(
     private val remoteProductDataSource: RemoteProductDataSource,
     private val localProductDataSource: LocalProductDataSource,
     private val cacheInfoDao: CacheInfoDao,
-    private val database: AppDatabase
+    private val pendingOperationDao: PendingOperationDao,
+    private val database: AppDatabase,
+    private val syncScheduler: SyncScheduler
+
 ) : ProductRepo {
 
     override suspend fun insertProducts(products: List<Product>) {
@@ -99,6 +108,60 @@ class ProductRepositoryImpl @Inject constructor(
         return localProductDataSource.getFavoriteProducts().map { favsWithProducts ->
             favsWithProducts.map { favWithProduct ->
                 favWithProduct.product.toDomain().copy(isFavorite = true) }
+        }
+    }
+
+    override suspend fun updateProduct(product: Product): Result<Product> {
+        val now = System.currentTimeMillis()
+        database.withTransaction {
+            localProductDataSource.updateProduct(
+                product.toEntity().copy(
+                    updatedAt = now,
+                    syncStatus = SyncStatus.PENDING
+                )
+            )
+            if (
+                !pendingOperationDao.exists(
+                    product.id,
+                    PendingOperationType.PATCH
+                )
+            ) {
+                pendingOperationDao.insert(
+                    PendingOperationEntity(
+                        productId = product.id,
+                        operation = PendingOperationType.PATCH,
+                        retryCount = 0,
+                        createdAt = now
+                    )
+                )
+            }
+        }
+        syncScheduler.syncNow()
+        return Result.success(product)
+    }
+
+    override fun observeProductById(id: Int): Flow<Product> {
+        return localProductDataSource.observeProductById(id)
+    }
+
+    override suspend fun deleteProduct(productId: Int): Result<Unit> {
+        return try {
+            database.withTransaction {
+                localProductDataSource.removeFavorite(productId)
+                localProductDataSource.softDeleteProduct(productId)
+                pendingOperationDao.insert(
+                    PendingOperationEntity(
+                        productId = productId,
+                        operation = PendingOperationType.DELETE,
+                        retryCount = 0,
+                        createdAt = System.currentTimeMillis()
+                    )
+                )
+            }
+            syncScheduler.syncNow()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

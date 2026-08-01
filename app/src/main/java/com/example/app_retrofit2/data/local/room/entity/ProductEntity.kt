@@ -1,0 +1,24 @@
+package com.example.app_retrofit2.data.local.room.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.example.app_retrofit2.data.sync.SyncStatus
+
+
+@Entity(tableName = "products")
+data class ProductEntity(
+    @PrimaryKey val id: Int,
+    val title: String?,
+    val description: String?,
+    val category: String?,
+    val price: Float?,
+    val discountPercentage: Float,
+    val rating: Float,
+    val stock: Int,
+    val brand: String?,
+    val images: List<String>?,
+    val isVisible: Boolean = true,
+    val isDeleted: Boolean = false,
+    val syncStatus: SyncStatus = SyncStatus.SYNCED,
+    val updatedAt: Long = 0L
+)

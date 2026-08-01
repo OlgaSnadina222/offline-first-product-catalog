@@ -10,6 +10,7 @@
     <string name="product_rating">Rating:</string>
     <string name="product_stock">Stock:</string>
     <string name="product_price">Price:</string>
+    <string name="save_changes">Save changes</string>
 
     ------- UiState --------
     <string name="no_internet_connection">No internet connection</string>

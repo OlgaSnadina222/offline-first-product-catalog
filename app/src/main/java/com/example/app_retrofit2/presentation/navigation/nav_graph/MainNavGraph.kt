@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.app_retrofit2.presentation.favorities_screen.FavoritesScreen
+import com.example.app_retrofit2.presentation.favorites_screen.FavoritesScreen
 import com.example.app_retrofit2.presentation.navigation.favorites_screen.FavoritesScreenNavData
 import com.example.app_retrofit2.presentation.navigation.product_details_screen.ProductDetailsScreenNavData
 import com.example.app_retrofit2.presentation.navigation.products_screen.ProductsScreenNavData

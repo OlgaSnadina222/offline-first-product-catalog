@@ -1,11 +1,11 @@
 package com.example.app_retrofit2.data.repository
 
 import androidx.room.withTransaction
-import com.example.app_retrofit2.data.local.dao.CacheInfoDao
-import com.example.app_retrofit2.data.local.datasource.room.LocalCategoryDataSource
-import com.example.app_retrofit2.data.local.db.AppDatabase
-import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
-import com.example.app_retrofit2.data.local.mapper.toDomain
+import com.example.app_retrofit2.data.local.room.dao.CacheInfoDao
+import com.example.app_retrofit2.data.local.room.datasource.LocalCategoryDataSource
+import com.example.app_retrofit2.data.local.room.db.AppDatabase
+import com.example.app_retrofit2.data.local.room.entity.CacheInfoEntity
+import com.example.app_retrofit2.data.local.room.mapper.toDomain
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteCategoryDataSource
 import com.example.app_retrofit2.data.remote.mapper.toDomain
 import com.example.app_retrofit2.domain.model.Category

@@ -3,6 +3,7 @@ package com.example.app_retrofit2.data.remote.api
 import com.example.app_retrofit2.data.remote.dto.ProductDto
 import com.example.app_retrofit2.data.remote.dto.ProductRequestDto
 import com.example.app_retrofit2.data.remote.dto.ProductResponseDto
+import com.example.app_retrofit2.data.remote.dto.UpdateProductDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -39,5 +40,16 @@ interface ProductApi {
         @Query("skip")
         skip: Int
     ): Response<ProductResponseDto>
+
+    @PATCH("products/{id}")
+    suspend fun updateProduct(
+        @Path("id") id: Int,
+        @Body body: UpdateProductDto
+    ): Response<ProductDto>
+
+    @DELETE("products/{id}")
+    suspend fun deleteProduct(
+        @Path("id") id: Int
+    ): Response<Unit>
 
 }

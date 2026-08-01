@@ -1,13 +1,10 @@
 package com.example.app_retrofit2.data.remote.datasource.dummyjson
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
+import com.example.app_retrofit2.data.local.room.entity.ProductEntity
+import com.example.app_retrofit2.data.local.room.mapper.toDomain
 import com.example.app_retrofit2.data.remote.api.ProductApi
 import com.example.app_retrofit2.data.remote.dto.ProductDto
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.example.app_retrofit2.domain.mapper.toUpdateDto
 import okio.IOException
 import retrofit2.HttpException
 import retrofit2.Response
@@ -85,6 +82,40 @@ class RemoteProductDataSource @Inject constructor(
             Result.failure(ioException)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+    suspend fun updateProduct(product: ProductEntity): Result<ProductDto> {
+        return try {
+            val response = productApi.updateProduct(
+                id = product.id,
+                body = product.toDomain().toUpdateDto()
+            )
+            if (response.isSuccessful) {
+                Result.success(
+                    response.body() ?: return Result.failure(Exception("Body is null"))
+                )
+            } else {
+                Result.failure(
+                    Exception("HTTP ${response.code()}")
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteProduct(id: Int): Result<Unit> {
+        return try {
+            val response = productApi.deleteProduct(id)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("HTTP ${response.code()}"))
+            }
+        } catch (e: Exception) {
+
+            Result.failure(e)
+
         }
     }
 

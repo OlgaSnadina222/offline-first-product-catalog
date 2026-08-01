@@ -1,6 +1,7 @@
 package com.example.app_retrofit2.presentation.products_screen
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,15 +35,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -69,20 +69,30 @@ fun ProductsScreen(
     onFavoritesClick: () -> Unit,
     viewModel: ProductsScreenViewModel = hiltViewModel()
     ) {
-    val state by viewModel.state.collectAsState()
     val categoryState by viewModel.categoriesState.collectAsStateWithLifecycle()
-    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val productUiState by viewModel.productUiState.collectAsStateWithLifecycle()
     val products = viewModel.pagingProducts.collectAsLazyPagingItems()
-    val filters by viewModel.filters.collectAsState()
-    var expanded by remember { mutableStateOf(false) }
-    var isFavorite by remember { mutableStateOf(false) }
     val pullState = rememberPullToRefreshState()
-    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
+    val isConnected = viewModel.isConnected.collectAsState(false)
+    val context = LocalContext.current
 
+    LaunchedEffect(isConnected.value) {
+        if (isConnected.value){
+            products.refresh()
+        }
+    }
+
+    LaunchedEffect(products.loadState.refresh) {
+        if (products.loadState.refresh is LoadState.Error){
+            val pagingError = products.loadState.refresh as? LoadState.Error
+            val errorText = pagingError?.error?.message ?: UiState.Error.Unknown().message
+            Toast.makeText(context, errorText, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold {
         Box(modifier = Modifier.fillMaxSize()) {
-            val background = backgroundForTheme(preferences.theme)
+            val background = backgroundForTheme(productUiState.preferences.theme)
             Image(
                 painter = painterResource(background),
                 contentDescription = "Product screen background",
@@ -91,12 +101,13 @@ fun ProductsScreen(
             )
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(horizontal = 10.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     OutlinedButton(
-                        onClick = { expanded = true },
+                        onClick = { viewModel.onEvent(ProductsScreenUiEvents.OnExpand(true)) },
                         modifier = Modifier.size(56.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = CategoryMenuColor),
@@ -110,8 +121,8 @@ fun ProductsScreen(
                             modifier = Modifier.size(29.dp)
                         )
                         DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
+                            expanded = productUiState.expanded,
+                            onDismissRequest = { viewModel.onEvent(ProductsScreenUiEvents.OnExpand(false)) }
                         ) {
                             Text(
                                 text = "Theme",
@@ -124,7 +135,7 @@ fun ProductsScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             ThemeMode.entries.forEach { theme ->
-                                val isSelected = theme == preferences.theme
+                                val isSelected = theme == productUiState.preferences.theme
                                 DropdownMenuItem(
                                     text = {
                                         Text(
@@ -141,7 +152,7 @@ fun ProductsScreen(
                                     },
 
                                     trailingIcon = {
-                                        if (preferences.theme == theme) {
+                                        if (productUiState.preferences.theme == theme) {
                                             Icon(
                                                 Icons.Default.Check,
                                                 contentDescription = null
@@ -157,7 +168,7 @@ fun ProductsScreen(
                                         viewModel.onEvent(
                                             ProductsScreenUiEvents.OnThemeSelected(theme)
                                         )
-                                        expanded = false
+                                        viewModel.onEvent(ProductsScreenUiEvents.OnExpand(false))
                                     }
                                 )
                             }
@@ -173,7 +184,7 @@ fun ProductsScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             ProductSort.entries.forEach { sort ->
-                                val isSelected = sort == preferences.sort
+                                val isSelected = sort == productUiState.preferences.sort
                                 DropdownMenuItem(
                                     text = {
                                         Text(
@@ -190,7 +201,7 @@ fun ProductsScreen(
                                     },
 
                                     trailingIcon = {
-                                        if (preferences.sort == sort) {
+                                        if (productUiState.preferences.sort == sort) {
                                             Icon(
                                                 Icons.Default.Check,
                                                 contentDescription = null
@@ -205,7 +216,7 @@ fun ProductsScreen(
                                         viewModel.onEvent(
                                             ProductsScreenUiEvents.OnSortSelected(sort)
                                         )
-                                        expanded = false
+                                        viewModel.onEvent(ProductsScreenUiEvents.OnExpand(false))
                                     }
                                 )
                             }
@@ -228,19 +239,19 @@ fun ProductsScreen(
                                                 text = "Loading...",
                                                 color = Color.Red)
                                                },
-                                        onClick = { expanded = false }
+                                        onClick = { viewModel.onEvent(ProductsScreenUiEvents.OnExpand(false)) }
                                     )
                                 }
                                 is UiState.Success -> {
                                     state.data.forEach { category ->
-                                        val isSelected = category.slug == selectedCategory
+                                        val isSelected = category.slug == productUiState.filters.category
                                         DropdownMenuItem(
                                             onClick = { viewModel.onEvent(
                                                     ProductsScreenUiEvents.OnCategorySelected(
                                                         category.slug
                                                     )
                                                 )
-                                                expanded = false
+                                                viewModel.onEvent(ProductsScreenUiEvents.OnExpand(false))
                                             },
                                             text = {
                                                 Text(
@@ -274,7 +285,9 @@ fun ProductsScreen(
                                                 color = Color.Red
                                             )
                                         },
-                                        onClick = { expanded = false }
+                                        onClick = { viewModel.onEvent(
+                                            ProductsScreenUiEvents.OnExpand(false))
+                                        }
                                     )
                                 }
                             }
@@ -282,7 +295,7 @@ fun ProductsScreen(
                     }
                     Spacer(modifier = Modifier.width(4.dp))
                     OutlinedTextField(
-                        value = filters.query,
+                        value = productUiState.filters.query,
                         onValueChange = { newQuery ->
                             viewModel.onEvent(ProductsScreenUiEvents.OnQueryChange(newQuery))
                         },
@@ -321,53 +334,33 @@ fun ProductsScreen(
                     indicator = {
                         PullToRefreshCustomIndicator(
                             pullState,
-                            products.loadState.refresh is LoadState.Loading ||
-                            state is UiState.Loading && products.loadState.refresh is LoadState.Loading
+                            products.loadState.refresh is LoadState.Loading
                         ) },
-                    isRefreshing =
-                        products.loadState.refresh is LoadState.Loading,
-                    onRefresh = {
-                        products.refresh()
-                    }
-                ) {
-                     if (products.loadState.refresh is LoadState.Error || state is UiState.Error) {
-                        val pagingError = products.loadState.refresh as? LoadState.Error
-                        val errorText = when {
-                            pagingError != null -> pagingError.error.message
-                            state is UiState.Error.Network -> (state as UiState.Error.Network).message
-                            state is UiState.Error.Timeout -> (state as UiState.Error.Timeout).message
-                            state is UiState.Error.Http -> (state as UiState.Error.Http).message
-                            state is UiState.Error.Unknown -> (state as UiState.Error.Unknown).message
-                            else -> {
-                                UiState.Error.Unknown().message
-                            }
-                        }
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = errorText.toString(),
-                                color = Color.Red
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize()
-                                .padding(horizontal = 10.dp)
+                    isRefreshing = products.loadState.refresh is LoadState.Loading,
+                    onRefresh = { products.refresh() }
+                ){
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                            .padding(horizontal = 10.dp)
                         ) {
                             items(products.itemCount) { index ->
                                 val product = products[index]
                                 ProductItem(
                                     product = product!!,
                                     onClickCard = { onProductClick(product.id) },
-                                    onFavoriteClick = { viewModel.onEvent(ProductsScreenUiEvents
-                                        .ToggleFavorite(product.id))
+                                    onFavoriteClick = {
+                                        viewModel.onEvent(
+                                            ProductsScreenUiEvents
+                                                .OnToggleFavorite(product.id)
+                                        )
+                                    },
+                                    onDeleteClick = {
+                                        viewModel.onEvent(ProductsScreenUiEvents
+                                            .OnDeleteProduct(product.id))
                                     }
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                             }
-                        }
                     }
                 }
             }

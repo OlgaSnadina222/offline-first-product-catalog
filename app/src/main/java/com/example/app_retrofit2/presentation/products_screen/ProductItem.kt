@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
@@ -38,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -53,7 +55,8 @@ import com.example.app_retrofit2.presentation.theme.ProductTitleColor
 fun ProductItem(
     product: Product,
     onClickCard: () -> Unit,
-    onFavoriteClick: () -> Unit
+    onFavoriteClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ){
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -67,8 +70,8 @@ fun ProductItem(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                verticalAlignment = Alignment.CenterVertically)
+            {
                 Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
                     AsyncImage(
                         ImageRequest
@@ -88,11 +91,14 @@ fun ProductItem(
                 Column(modifier = Modifier.weight(2f)) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            product.title,
+                            text = product.title,
+                            modifier = Modifier.weight(1f),
                             color = ProductTitleColor,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            fontSize = 18.sp,
+                            maxLines = 2
                         )
+                        Spacer(modifier = Modifier.width(30.dp))
                     }
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
@@ -176,6 +182,19 @@ fun ProductItem(
                         }
                     }
                 }
+            }
+            IconButton(
+                onClick = onDeleteClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(6.dp)
+                    .size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete product",
+                    tint = Color.LightGray
+                )
             }
         }
     }

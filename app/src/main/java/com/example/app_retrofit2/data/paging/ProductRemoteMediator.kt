@@ -6,14 +6,15 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.example.app_retrofit2.data.local.dao.CacheInfoDao
-import com.example.app_retrofit2.data.local.datasource.room.LocalProductDataSource
-import com.example.app_retrofit2.data.local.db.AppDatabase
-import com.example.app_retrofit2.data.local.entity.CacheInfoEntity
-import com.example.app_retrofit2.data.local.entity.ProductCategoryCrossRef
-import com.example.app_retrofit2.data.local.entity.ProductWithFavorite
+import com.example.app_retrofit2.data.local.room.dao.CacheInfoDao
+import com.example.app_retrofit2.data.local.room.datasource.LocalProductDataSource
+import com.example.app_retrofit2.data.local.room.db.AppDatabase
+import com.example.app_retrofit2.data.local.room.entity.CacheInfoEntity
+import com.example.app_retrofit2.data.local.room.entity.ProductCategoryCrossRef
+import com.example.app_retrofit2.data.local.room.entity.ProductWithFavorite
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteProductDataSource
 import com.example.app_retrofit2.data.remote.mapper.toEntity
+import com.example.app_retrofit2.data.sync.SyncStatus
 
 @OptIn(ExperimentalPagingApi::class)
 class ProductRemoteMediator(
@@ -40,7 +41,7 @@ class ProductRemoteMediator(
                 }
                 LoadType.PREPEND -> return MediatorResult.Success(true)
             }
-            Log.d("MediatorLog", "Api call")
+            Log.d("MediatorLog", "Api call: ${loadType.name}")
             val products = if (category != "all") {
                 remote.getProductsByCategory(
                         category = category,
@@ -61,14 +62,24 @@ class ProductRemoteMediator(
                         categorySlug = it.category ?: ""
                     )
                 }
-
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                    local.clearProducts(category)
                     local.clearCrossRefs(category)
                     local.clearRemoteKeys(category)
                 }
-                local.insertProducts(productEntities)
+                productEntities.forEach { serverProduct ->
+                    val localProduct = local.getProductById(serverProduct.id)
+                    when {
+                        localProduct == null -> {
+                            local.insertProducts(listOf(serverProduct))
+                        }
+                        localProduct.isDeleted -> Unit
+                        localProduct.syncStatus == SyncStatus.PENDING -> Unit
+                        else -> {
+                            local.updateProduct(serverProduct)
+                        }
+                    }
+                }
                 local.insertCrossRefs(crossRefs)
                 local.insertRemoteKey(
                     category = category,
@@ -78,9 +89,11 @@ class ProductRemoteMediator(
                         skip + products.size
                     }
                 )
-                cacheInfoDao.insertCacheInfo(CacheInfoEntity(
-                    key = "products_$category",
-                    lastUpdated = System.currentTimeMillis())
+                cacheInfoDao.insertCacheInfo(
+                    CacheInfoEntity(
+                        key = "products_$category",
+                        lastUpdated = System.currentTimeMillis()
+                    )
                 )
             }
             MediatorResult.Success(
@@ -92,15 +105,11 @@ class ProductRemoteMediator(
     }
 
     override suspend fun initialize(): InitializeAction {
-        val cacheInfo = cacheInfoDao.getCacheInfo("products_$category")
-        return if (
-            cacheInfo == null ||
-            System.currentTimeMillis() - cacheInfo.lastUpdated > 20 * 1000
-        ) {
-            Log.d("MediatorLog", "LAUNCH_INITIAL_REFRESH")
+        return if (local.isCacheExpired(category)) {
+            Log.d("MediatorLog", "Cache expired")
             InitializeAction.LAUNCH_INITIAL_REFRESH
         } else {
-            Log.d("MediatorLog", "SKIP_INITIAL_REFRESH ")
+            Log.d("MediatorLog", "Cache is fresh")
             InitializeAction.SKIP_INITIAL_REFRESH
         }
     }
