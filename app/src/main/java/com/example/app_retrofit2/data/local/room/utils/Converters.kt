@@ -9,12 +9,12 @@ class Converters {
 fun fromImages(images: List<String>?): String {
     return Gson().toJson(images)
 }
-
     @TypeConverter
-    fun toImages(imagesString: String): List<String> {
-        return Gson().fromJson(
-            imagesString,
-            object : TypeToken<List<String>>() {}.type
-        )
-    }
+    fun toImages(imagesString: String?): List<String> =
+        imagesString?.let {
+            Gson().fromJson<List<String>>(
+                it,
+                object : TypeToken<List<String>>() {}.type
+            )
+        } ?: emptyList()
 }

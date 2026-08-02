@@ -10,7 +10,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 import javax.inject.Inject
 
-class RemoteProductDataSource @Inject constructor(
+open class RemoteProductDataSource @Inject constructor(
     private val productApi: ProductApi
 ) {
     suspend fun getAllProducts(limit: Int, skip: Int): Result<List<ProductDto>> {

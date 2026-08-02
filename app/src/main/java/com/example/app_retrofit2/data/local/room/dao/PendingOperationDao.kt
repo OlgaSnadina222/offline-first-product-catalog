@@ -13,16 +13,12 @@ interface PendingOperationDao {
 
     @Query("SELECT * FROM pending_operations ORDER BY createdAt")
     suspend fun getPendingOperations(): List<PendingOperationEntity>
-
     @Insert
     suspend fun insert(operation: PendingOperationEntity)
-
     @Delete
     suspend fun delete(operation: PendingOperationEntity)
-
     @Update
     suspend fun update(operation: PendingOperationEntity)
-
     @Query("SELECT EXISTS(SELECT 1 FROM pending_operations WHERE productId = :productId AND operation = :operation)")
     suspend fun exists(productId: Int, operation: PendingOperationType): Boolean
 }

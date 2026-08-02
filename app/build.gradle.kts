@@ -70,6 +70,8 @@ dependencies {
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.runtime)
     implementation(libs.runtime)
+    implementation(libs.engage.core)
+    implementation(libs.androidx.work.testing)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
@@ -95,6 +97,8 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    androidTestImplementation(libs.mockwebserver)
+    androidTestImplementation(libs.androidx.work.testing.v2103)
 
 
 

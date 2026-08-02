@@ -12,7 +12,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore by preferencesDataStore(
+val Context.dataStore by preferencesDataStore(
     name = "user_preferences"
 )
 

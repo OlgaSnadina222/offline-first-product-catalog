@@ -14,4 +14,7 @@ interface ProductCategoryCrossRefDao {
 
     @Query("DELETE FROM product_category_cross_ref WHERE categorySlug = :category")
     suspend fun clearCrossRefs(category: String)
+
+    @Query("SELECT * FROM product_category_cross_ref")
+    suspend fun getAllCrossRefs(): List<ProductCategoryCrossRef>
 }
