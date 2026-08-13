@@ -2,12 +2,9 @@ package com.example.app_retrofit2.domain.mapper
 
 import com.example.app_retrofit2.data.remote.dto.UpdateProductDto
 import com.example.app_retrofit2.domain.model.Product
-import junit.framework.TestCase.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-@RunWith(JUnit4::class)
 class UpdateProductMapperTest {
     @Test
     fun product_toUpdateDto_maps_correctly() {

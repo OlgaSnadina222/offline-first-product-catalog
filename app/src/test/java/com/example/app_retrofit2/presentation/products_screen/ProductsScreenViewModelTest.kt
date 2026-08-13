@@ -1,6 +1,5 @@
 package com.example.app_retrofit2.presentation.products_screen
 
-import androidx.paging.PagingData
 import com.example.app_retrofit2.data.connectivity.ConnectivityObserver
 import com.example.app_retrofit2.domain.model.ProductSort
 import com.example.app_retrofit2.domain.model.ThemeMode
@@ -15,18 +14,17 @@ import com.example.app_retrofit2.domain.usecase.products_screen.GetSearchProduct
 import com.example.app_retrofit2.domain.usecase.products_screen.ToggleFavoriteUseCase
 import com.example.app_retrofit2.presentation.common.events.ProductsScreenUiEvents
 import com.example.app_retrofit2.presentation.common.states.UiState
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 

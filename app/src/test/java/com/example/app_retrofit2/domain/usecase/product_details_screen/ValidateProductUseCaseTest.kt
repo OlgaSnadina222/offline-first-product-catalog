@@ -1,14 +1,11 @@
 package com.example.app_retrofit2.domain.usecase.product_details_screen
 
 import com.example.app_retrofit2.domain.model.Product
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-@RunWith(JUnit4::class)
 class ValidateProductUseCaseTest {
     private lateinit var useCase: ValidateProductUseCase
     private val validProduct = Product(

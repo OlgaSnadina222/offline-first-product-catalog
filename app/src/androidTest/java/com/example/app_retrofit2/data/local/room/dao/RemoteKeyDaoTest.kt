@@ -3,19 +3,16 @@ package com.example.app_retrofit2.data.local.room.dao
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_retrofit2.data.local.room.db.AppDatabase
 import com.example.app_retrofit2.data.local.room.entity.RemoteKeyEntity
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.assertNull
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
 class RemoteKeyDaoTest {
     private lateinit var db: AppDatabase
     private lateinit var dao: RemoteKeyDao

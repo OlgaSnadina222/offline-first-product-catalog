@@ -2,14 +2,10 @@ package com.example.app_retrofit2.data.remote.mapper
 
 import com.example.app_retrofit2.data.remote.dto.CategoryDto
 import com.example.app_retrofit2.domain.model.Category
-import junit.framework.TestCase.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-class CategoryMapperTest {
-    @RunWith(JUnit4::class)
-    class CategoryDtoMapperTest {
+class CategoryDtoMapperTest {
 
         @Test
         fun dto_toDomain_maps_correctly() {
@@ -38,5 +34,4 @@ class CategoryMapperTest {
                 ), result
             )
         }
-    }
 }

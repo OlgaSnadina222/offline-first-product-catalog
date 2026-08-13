@@ -5,13 +5,12 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
-import androidx.room.withTransaction
 import com.example.app_retrofit2.data.local.room.dao.CacheInfoDao
 import com.example.app_retrofit2.data.local.room.datasource.LocalProductDataSource
-import com.example.app_retrofit2.data.local.room.db.AppDatabase
 import com.example.app_retrofit2.data.local.room.entity.CacheInfoEntity
 import com.example.app_retrofit2.data.local.room.entity.ProductCategoryCrossRef
 import com.example.app_retrofit2.data.local.room.entity.ProductWithFavorite
+import com.example.app_retrofit2.data.local.room.transaction.DatabaseTransaction
 import com.example.app_retrofit2.data.remote.datasource.dummyjson.RemoteProductDataSource
 import com.example.app_retrofit2.data.remote.mapper.toEntity
 import com.example.app_retrofit2.data.sync.SyncStatus
@@ -22,7 +21,7 @@ class ProductRemoteMediator(
     private val local: LocalProductDataSource,
     private val category: String,
     private val cacheInfoDao: CacheInfoDao,
-    private val database: AppDatabase
+    private val transaction: DatabaseTransaction
 ) : RemoteMediator<Int, ProductWithFavorite>() {
 
     override suspend fun load(
@@ -41,7 +40,7 @@ class ProductRemoteMediator(
                 }
                 LoadType.PREPEND -> return MediatorResult.Success(true)
             }
-            Log.d("MediatorLog", "Api call: ${loadType.name}")
+            //Log.d("MediatorLog", "Api call: ${loadType.name}")
             val products = if (category != "all") {
                 remote.getProductsByCategory(
                         category = category,
@@ -62,7 +61,7 @@ class ProductRemoteMediator(
                         categorySlug = it.category ?: ""
                     )
                 }
-            database.withTransaction {
+            transaction.withTransaction {
                 if (loadType == LoadType.REFRESH) {
                     local.clearCrossRefs(category)
                     local.clearRemoteKeys(category)
@@ -106,10 +105,10 @@ class ProductRemoteMediator(
 
     override suspend fun initialize(): InitializeAction {
         return if (local.isCacheExpired(category)) {
-            Log.d("MediatorLog", "Cache expired")
+            //Log.d("MediatorLog", "Cache expired")
             InitializeAction.LAUNCH_INITIAL_REFRESH
         } else {
-            Log.d("MediatorLog", "Cache is fresh")
+            //Log.d("MediatorLog", "Cache is fresh")
             InitializeAction.SKIP_INITIAL_REFRESH
         }
     }

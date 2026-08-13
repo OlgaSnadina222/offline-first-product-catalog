@@ -2,7 +2,7 @@ package com.example.app_retrofit2.data.local.room.mapper
 
 import com.example.app_retrofit2.data.local.room.entity.CategoryEntity
 import com.example.app_retrofit2.domain.model.Category
-import junit.framework.TestCase.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class LocalCategoryMapperTest {

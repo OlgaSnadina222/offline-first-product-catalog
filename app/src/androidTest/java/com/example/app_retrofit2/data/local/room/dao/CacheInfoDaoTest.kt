@@ -3,17 +3,15 @@ package com.example.app_retrofit2.data.local.room.dao
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_retrofit2.data.local.room.db.AppDatabase
 import com.example.app_retrofit2.data.local.room.entity.CacheInfoEntity
-import junit.framework.TestCase
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
 class CacheInfoDaoTest {
     private lateinit var database: AppDatabase
     private lateinit var cacheInfoDao: CacheInfoDao
@@ -42,13 +40,13 @@ class CacheInfoDaoTest {
         )
         cacheInfoDao.insertCacheInfo(cacheInfo)
         val result = cacheInfoDao.getCacheInfo("products")
-        TestCase.assertEquals(cacheInfo, result)
+        assertEquals(cacheInfo, result)
     }
 
     @Test
     fun getCacheInfo_returns_null_when_not_found() = runTest {
         val result = cacheInfoDao.getCacheInfo("unknown")
-        TestCase.assertNull(result)
+        assertNull(result)
     }
 
     @Test
@@ -66,6 +64,6 @@ class CacheInfoDaoTest {
             )
         )
         val result = cacheInfoDao.getCacheInfo("products")
-        TestCase.assertEquals(500L, result?.lastUpdated)
+        assertEquals(500L, result?.lastUpdated)
     }
 }

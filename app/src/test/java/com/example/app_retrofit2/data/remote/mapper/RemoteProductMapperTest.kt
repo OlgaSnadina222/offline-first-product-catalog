@@ -3,14 +3,11 @@ package com.example.app_retrofit2.data.remote.mapper
 import com.example.app_retrofit2.data.local.room.entity.ProductEntity
 import com.example.app_retrofit2.data.remote.dto.ProductDto
 import com.example.app_retrofit2.data.sync.SyncStatus
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-@RunWith(JUnit4::class)
 class ProductDtoMapperTest {
 
     @Test

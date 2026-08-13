@@ -2,10 +2,10 @@ package com.example.app_retrofit2.domain.usecase.favorites_screen
 
 import com.example.app_retrofit2.domain.model.Product
 import com.example.app_retrofit2.domain.repositoty.ProductRepo
-import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

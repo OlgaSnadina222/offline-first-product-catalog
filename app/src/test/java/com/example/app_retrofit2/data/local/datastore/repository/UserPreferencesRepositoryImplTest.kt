@@ -1,14 +1,13 @@
 package com.example.app_retrofit2.data.local.datastore.repository
 
 import com.example.app_retrofit2.data.local.datastore.datasource.UserPreferencesDataStore
-import com.example.app_retrofit2.data.local.datastore.repository.UserPreferencesRepositoryImpl
 import com.example.app_retrofit2.domain.model.ProductSort
 import com.example.app_retrofit2.domain.model.ThemeMode
 import com.example.app_retrofit2.domain.model.UserPreferences
-import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

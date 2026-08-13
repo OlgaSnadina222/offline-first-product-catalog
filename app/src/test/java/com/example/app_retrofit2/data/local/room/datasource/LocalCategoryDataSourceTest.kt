@@ -3,8 +3,8 @@ package com.example.app_retrofit2.data.local.room.datasource
 import com.example.app_retrofit2.data.local.room.dao.CategoryDao
 import com.example.app_retrofit2.data.local.room.entity.CategoryEntity
 import com.example.app_retrofit2.domain.model.Category
-import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

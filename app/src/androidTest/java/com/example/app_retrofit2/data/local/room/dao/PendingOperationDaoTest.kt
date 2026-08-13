@@ -3,20 +3,17 @@ package com.example.app_retrofit2.data.local.room.dao
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_retrofit2.data.local.room.db.AppDatabase
 import com.example.app_retrofit2.data.local.room.entity.PendingOperationEntity
 import com.example.app_retrofit2.data.sync.PendingOperationType
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
 class PendingOperationDaoTest {
     private lateinit var db: AppDatabase
     private lateinit var dao: PendingOperationDao
