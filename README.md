@@ -18,6 +18,14 @@ The project focuses on building a reliable data layer where the local **Room dat
 * 🎨 Modern UI built with Jetpack Compose
 * 🧪 Unit testing with JUnit and Mockito
 
+## 📱 App Demo
+
+<p align="left">
+  <img src="paging_demo.gif" alt="Product browsing and pagination" width="250">
+  <img src="search-demo.gif" alt="Product search" width="250">
+  <img src="offline-demo.gif" alt="Offline-first data" width="250">
+</p>
+
 ## 🏗️ Architecture
 
 The application follows **Clean Architecture** and **MVVM**, with a clear separation between presentation, domain, and data layers.
