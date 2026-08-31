@@ -1,4 +1,3 @@
-# App_Retrofit2
 # 📱 Offline-First Product Catalog
 
 A modern Android application built with **Kotlin and Jetpack Compose**, demonstrating a production-oriented approach to **offline-first data loading, pagination, local caching, and network synchronization**.
